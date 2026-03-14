@@ -1,4 +1,4 @@
-# GigShield AI — Frontend
+# SaaralCare - AI — Frontend
 
 Parametric income protection platform for delivery workers. Built with Next.js, Tailwind CSS, and Leaflet.
 
@@ -102,4 +102,4 @@ module.exports = {
 ## Environment
 
 No env vars needed for the frontend. Auth tokens are stored in `sessionStorage` (upgrade to httpOnly cookies in production).
-# SaaralCare
+
