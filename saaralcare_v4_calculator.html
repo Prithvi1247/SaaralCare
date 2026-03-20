@@ -1,0 +1,524 @@
+<style>
+*{box-sizing:border-box;}
+.sc{padding:1rem 0;}
+.row{display:flex;align-items:center;gap:10px;margin:0 0 8px;}
+.row label{font-size:13px;color:var(--color-text-secondary);min-width:150px;}
+.row input[type=range]{flex:1;}
+.row .rd{font-size:13px;font-weight:500;min-width:76px;text-align:right;color:var(--color-text-primary);}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 10px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:0 0 10px;}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin:0 0 10px;}
+.mc{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px 12px;}
+.mc .lb{font-size:11px;color:var(--color-text-tertiary);margin:0 0 2px;}
+.mc .vl{font-size:17px;font-weight:500;color:var(--color-text-primary);margin:0;line-height:1.2;}
+.mc .sb{font-size:10px;color:var(--color-text-tertiary);margin:3px 0 0;}
+.sh{font-size:11px;font-weight:500;color:var(--color-text-secondary);letter-spacing:.05em;text-transform:uppercase;margin:14px 0 6px;padding-bottom:4px;border-bottom:0.5px solid var(--color-border-tertiary);}
+.fml{background:var(--color-background-secondary);border-left:3px solid var(--color-border-info);border-radius:0 6px 6px 0;padding:8px 12px;font-size:11px;font-family:var(--font-mono);color:var(--color-text-secondary);margin:0 0 10px;line-height:1.8;}
+.badge{display:inline-block;font-size:10px;padding:2px 7px;border-radius:20px;font-weight:500;margin-left:4px;}
+.ok{background:var(--color-background-success);color:var(--color-text-success);}
+.wn{background:var(--color-background-warning);color:var(--color-text-warning);}
+.bd{background:var(--color-background-danger);color:var(--color-text-danger);}
+.tabs{display:flex;gap:2px;margin:0 0 14px;border-bottom:0.5px solid var(--color-border-tertiary);flex-wrap:wrap;}
+.tab{padding:6px 12px;font-size:12px;cursor:pointer;border-radius:6px 6px 0 0;border:0.5px solid transparent;color:var(--color-text-secondary);background:none;}
+.tab.active{border-color:var(--color-border-secondary);border-bottom-color:var(--color-background-primary);background:var(--color-background-primary);color:var(--color-text-primary);font-weight:500;}
+.panel{display:none;}.panel.active{display:block;}
+.stcard{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px 12px;}
+.stcard .sl{font-size:11px;color:var(--color-text-secondary);margin:0 0 2px;}
+.stcard .sv{font-size:16px;font-weight:500;margin:0;}
+.stcard .sd{font-size:10px;color:var(--color-text-tertiary);margin:3px 0 0;}
+.fi{padding:10px 0;border-bottom:0.5px solid var(--color-border-tertiary);display:flex;gap:10px;align-items:flex-start;}
+.fi-ic{width:30px;height:30px;border-radius:50%;background:var(--color-background-success);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;}
+.fi-t{font-size:13px;font-weight:500;margin:0 0 2px;color:var(--color-text-primary);}
+.fi-d{font-size:11px;color:var(--color-text-secondary);margin:0;line-height:1.5;}
+.scard{border-radius:var(--border-radius-md);padding:10px 8px;text-align:center;}
+.season-g{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:0 0 10px;}
+.tier-bar{display:flex;height:10px;border-radius:5px;overflow:hidden;margin:6px 0 3px;}
+.br-card{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:12px 14px;margin:0 0 10px;}
+</style>
+
+<div class="sc">
+<div class="tabs">
+  <div class="tab active" onclick="go('calc',this)">Calculator</div>
+  <div class="tab" onclick="go('trigger',this)">Trigger</div>
+  <div class="tab" onclick="go('seasonal',this)">Seasonal</div>
+  <div class="tab" onclick="go('stress',this)">Stress</div>
+  <div class="tab" onclick="go('fraud',this)">Fraud</div>
+  <div class="tab" onclick="go('basis',this)">Basis risk</div>
+</div>
+
+<!-- CALCULATOR -->
+<div id="tab-calc" class="panel active">
+  <div class="sh">Station & worker inputs</div>
+  <div class="row"><label>Risk score s</label><input type="range" id="r-s" min="0.05" max="0.95" step="0.01" value="0.50"><span class="rd" id="o-s">0.50</span></div>
+  <div class="row"><label>Daily income (₹)</label><input type="range" id="r-inc" min="400" max="1500" step="50" value="750"><span class="rd" id="o-inc">₹750</span></div>
+  <div class="row">
+    <label>Coverage ratio α</label>
+    <select id="r-alpha" style="flex:1;font-size:13px;padding:4px 8px;">
+      <option value="0.4">0.40 — minimal</option>
+      <option value="0.5" selected>0.50 — standard</option>
+      <option value="0.6">0.60 — enhanced</option>
+    </select>
+    <span class="rd" id="o-alpha">0.50</span>
+  </div>
+  <div class="row">
+    <label>Season</label>
+    <select id="r-season" style="flex:1;font-size:13px;padding:4px 8px;">
+      <option value="0.5">Dry (Jan–Apr)  β = 0.5</option>
+      <option value="0.8">Pre-monsoon (May–Jul)  β = 0.8</option>
+      <option value="1.2">SW monsoon (Aug–Sep)  β = 1.2</option>
+      <option value="1.8" selected>NE monsoon (Oct–Dec)  β = 1.8</option>
+    </select>
+    <span class="rd" id="o-beta">β 1.8</span>
+  </div>
+  <div style="margin:4px 0 12px;">
+    <div style="font-size:11px;color:var(--color-text-secondary);margin:0 0 3px;" id="risk-lbl">High risk — NE monsoon</div>
+    <div style="background:var(--color-background-secondary);height:6px;border-radius:3px;overflow:hidden;"><div id="risk-fill" style="height:6px;border-radius:3px;width:50%;transition:width .3s,background .3s;"></div></div>
+  </div>
+
+  <div class="sh">Dual Poisson calibration (w = 0.70 constant)</div>
+  <div class="g4">
+    <div class="mc"><p class="lb">λ_F (full)</p><p class="vl" id="m-lf">0.180</p><p class="sb">0.20×s×β</p></div>
+    <div class="mc"><p class="lb">λ_P (partial)</p><p class="vl" id="m-lp">0.270</p><p class="sb">0.30×s×β</p></div>
+    <div class="mc"><p class="lb">λ_total</p><p class="vl" id="m-lt">0.450</p><p class="sb">λ_F + λ_P</p></div>
+    <div class="mc"><p class="lb">w (exact)</p><p class="vl">0.700</p><p class="sb">constant ✓</p></div>
+  </div>
+
+  <div class="sh">Payout composition</div>
+  <div class="tier-bar" id="tier-bar"></div>
+  <div style="display:flex;gap:16px;font-size:11px;color:var(--color-text-secondary);margin:0 0 8px;" id="tier-leg"></div>
+
+  <div class="fml" id="fml-main">Loading...</div>
+
+  <div class="sh">Weekly payout</div>
+  <div class="g3">
+    <div class="mc"><p class="lb">c_day (₹)</p><p class="vl" id="m-cday">₹375</p><p class="sb">α × income</p></div>
+    <div class="mc"><p class="lb">E[min(N,3)]</p><p class="vl" id="m-emin">0.449</p><p class="sb">Poisson tail-sum</p></div>
+    <div class="mc"><p class="lb">E[Payout/wk]</p><p class="vl" id="m-epw">₹118</p><p class="sb">c×0.70×E[min]</p></div>
+  </div>
+  <div class="g3">
+    <div class="mc"><p class="lb">Full event contrib</p><p class="vl" id="m-fc">₹84</p><p class="sb">λ_F share</p></div>
+    <div class="mc"><p class="lb">Partial contrib</p><p class="vl" id="m-pc">₹34</p><p class="sb">λ_P share × 0.5</p></div>
+    <div class="mc"><p class="lb">E[Payout/month]</p><p class="vl" id="m-epm">₹511</p><p class="sb">× 4.33</p></div>
+  </div>
+
+  <div class="sh">Premium (θ = 0.325, LR = 75.5%)</div>
+  <div class="g4">
+    <div class="mc"><p class="lb">Weekly premium</p><p class="vl" id="m-pw">₹157</p><p class="sb">1.325 × E[P]</p></div>
+    <div class="mc"><p class="lb">Monthly premium</p><p class="vl" id="m-pm">₹679</p><p class="sb">× 4.33</p></div>
+    <div class="mc"><p class="lb">% of income</p><p class="vl" id="m-afford">4.3%</p><p class="sb">vs 21-day income</p></div>
+    <div class="mc"><p class="lb">Loss ratio</p><p class="vl" id="m-lr">75.5%</p><p class="sb">1/1.325</p></div>
+  </div>
+  <div class="g3">
+    <div class="mc"><p class="lb">Ops cost/wk</p><p class="vl" id="m-ops">₹20</p><p class="sb">12.5%</p></div>
+    <div class="mc"><p class="lb">Reserve/wk</p><p class="vl" id="m-res">₹16</p><p class="sb">10%</p></div>
+    <div class="mc"><p class="lb">Reinsurance/wk</p><p class="vl" id="m-rein">₹16</p><p class="sb">10%</p></div>
+  </div>
+
+  <div class="sh">Payout curve by risk score</div>
+  <div style="position:relative;height:210px;"><canvas id="ch-main"></canvas></div>
+  <div style="font-size:10px;color:var(--color-text-tertiary);margin:4px 0;">Amber = E[Payout/wk] · Blue = weekly premium · Red = your position</div>
+</div>
+
+<!-- TRIGGER -->
+<div id="tab-trigger" class="panel">
+  <div class="sh">Intensity-duration live calculator</div>
+  <div class="row"><label>Intensity I (mm/hr)</label><input type="range" id="r-I" min="2" max="30" step="0.5" value="12"><span class="rd" id="o-I">12.0</span></div>
+  <div class="row"><label>Duration D (hours)</label><input type="range" id="r-D" min="0.5" max="10" step="0.5" value="3"><span class="rd" id="o-D">3.0</span></div>
+  <div id="trig-res" style="border-radius:var(--border-radius-md);padding:16px;margin:0 0 14px;text-align:center;">
+    <div style="font-size:24px;font-weight:500;" id="tr-score">I × D = 36.0</div>
+    <div style="font-size:15px;margin:5px 0 2px;" id="tr-verdict">PARTIAL PAYOUT</div>
+    <div style="font-size:12px;opacity:.8;" id="tr-pct">50% of daily indemnity (c_day × 0.5)</div>
+  </div>
+
+  <div class="sh">Trigger zone map (I vs D)</div>
+  <div style="position:relative;height:250px;"><canvas id="ch-trig"></canvas></div>
+  <div style="font-size:10px;color:var(--color-text-tertiary);margin:4px 0 10px;">Green = full zone (I×D ≥ 50) · Amber = partial (30–49) · Gray = none (&lt;30)</div>
+
+  <div class="sh">Reference examples</div>
+  <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px 14px;">
+    <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1.5fr;font-size:11px;color:var(--color-text-tertiary);margin:0 0 6px;gap:4px;"><span>Event</span><span>I×D</span><span>Tier</span><span>Payout</span></div>
+    <div id="trigger-examples"></div>
+  </div>
+</div>
+
+<!-- SEASONAL -->
+<div id="tab-seasonal" class="panel">
+  <div class="sh">Seasonal breakdown — s = <span id="ss-s">0.50</span>, income <span id="ss-inc">₹750</span></div>
+  <div class="season-g" id="season-cards"></div>
+  <div class="sh">Monthly premium vs expected payout</div>
+  <div style="position:relative;height:220px;"><canvas id="ch-season"></canvas></div>
+  <div style="font-size:10px;color:var(--color-text-tertiary);margin:4px 0 10px;">Blue = premium · Amber = payout · Gap in Jan–Apr = reserve accumulation</div>
+  <div class="sh">Annual reserve balance</div>
+  <div class="fml" id="res-fml">Computing...</div>
+</div>
+
+<!-- STRESS -->
+<div id="tab-stress" class="panel">
+  <div class="sh">Stress test — s = <span id="st-s">0.50</span>, NE monsoon base</div>
+  <div class="g3" id="stress-cards"></div>
+  <div class="sh">Correlated payout — all workers at same station</div>
+  <div class="g3" id="agg-cards"></div>
+  <div class="sh">Loss ratio under stress</div>
+  <div style="position:relative;height:200px;"><canvas id="ch-stress"></canvas></div>
+  <div style="font-size:10px;color:var(--color-text-tertiary);margin:4px 0 10px;">Orange dashed = 80% target · Red dashed = 100% break-even · XL activates above red</div>
+  <div class="sh">Reinsurance structure</div>
+  <div class="fml">XL treaty: retention layer = 120% LR. Reinsurer pays 80% of loss excess of 120% LR. Annual XL cost = 10% of gross premium (embedded in θ). CAT reserve fund = 4× weekly E[aggregate payout] per zone, maintained at all times. Exposure cap: 800 workers per IMD station. New enrollment paused when aggregate weekly exposure exceeds ₹3M per zone.</div>
+</div>
+
+<!-- FRAUD -->
+<div id="tab-fraud" class="panel">
+  <div class="sh">Fraud vector analysis</div>
+  <div id="fraud-list"></div>
+  <div class="sh" style="margin-top:12px;">Timing attack — mathematical proof of failure</div>
+  <div class="fml" id="fraud-proof"></div>
+  <div class="sh">Why partial tier adds fraud resistance</div>
+  <div class="fml">A fraudster gaming the partial tier (I×D = 36) receives only 0.5×c_day per triggered day. With a 7-day delay, they must predict a partial event 7+ days in advance. Chennai convective storms persist 6–18 hours. No 7-day forecast achieves sufficient precision for sustained partial-tier events. Expected value of partial-tier gaming: also negative.</div>
+</div>
+
+<!-- BASIS RISK -->
+<div id="tab-basis" class="panel">
+  <div class="sh">What is basis risk?</div>
+  <div class="fml">Basis risk = the mismatch between the weather at the IMD station and the weather at the worker's actual location. The station is a fixed point; the worker is mobile. If a storm is concentrated in northern Adyar but the station is 3km south, the gauge may read 28 mm·hr⁻¹ while the worker experienced 38 mm·hr⁻¹ — a missed partial payout. Conversely, the gauge reads 52 while the worker was sheltered — an unearned full payout.</div>
+
+  <div class="sh">Quantified basis risk exposure</div>
+  <div class="g3">
+    <div class="mc"><p class="lb">IMD Chennai stations</p><p class="vl">12</p><p class="sb">automated gauges</p></div>
+    <div class="mc"><p class="lb">Avg station spacing</p><p class="vl">~5 km</p><p class="sb">city coverage</p></div>
+    <div class="mc"><p class="lb">Trigger accuracy est.</p><p class="vl">~87%</p><p class="sb">within 4km zone</p></div>
+  </div>
+  <div class="g2">
+    <div class="mc"><p class="lb">Under-trigger risk</p><p class="vl">~7%</p><p class="sb">worker affected, gauge missed</p></div>
+    <div class="mc"><p class="lb">Over-trigger risk</p><p class="vl">~6%</p><p class="sb">gauge triggered, worker unaffected</p></div>
+  </div>
+
+  <div class="sh">Mitigation strategies</div>
+  <div id="br-items"></div>
+
+  <div class="sh">Basis risk and the partial tier</div>
+  <div class="fml">The partial tier acts as a natural basis risk buffer. An event that is I×D = 52 at a worker's location but reads I×D = 44 at the nearest gauge still triggers a partial payout (50% c_day) rather than nothing. This ensures that edge-case spatial mismatches near the full/partial boundary result in at least partial compensation rather than zero. The financial impact of this buffer is small (adds ~2–3% to E[Payout]) and is already captured conservatively in the λ_P_max calibration.</div>
+
+  <div class="sh">Premium basis risk adjustment</div>
+  <div class="fml">No explicit premium loading for basis risk is required. The over-trigger risk (~6%) means the insurer occasionally pays out when the worker was not fully affected — this is the insurer's basis risk. The under-trigger risk (~7%) means the worker occasionally doesn't receive a payout they deserved — this is the worker's basis risk. These roughly balance, with a small net premium benefit to the insurer of ≈1–2% of expected claims. This is retained as part of the operations loading rather than returned, which is standard practice for parametric products.</div>
+</div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const LF_MAX=0.20, LP_MAX=0.30, LT_MAX=0.50, W=0.70, K=3, THETA=0.325;
+const SEASON_BETAS=[0.5,0.5,0.5,0.5,0.8,0.8,0.8,1.2,1.2,1.8,1.8,1.8];
+const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const WEEKS_PER_MONTH=[4,4,5,4,4,5,4,4,4,5,4,4];
+const SEASONS=[
+  {n:'Dry',m:'Jan–Apr',b:0.5,bg:'#E1F5EE',tx:'#085041'},
+  {n:'Pre-monsoon',m:'May–Jul',b:0.8,bg:'#FAEEDA',tx:'#633806'},
+  {n:'SW monsoon',m:'Aug–Sep',b:1.2,bg:'#E6F1FB',tx:'#0C447C'},
+  {n:'NE monsoon',m:'Oct–Dec',b:1.8,bg:'#FCEBEB',tx:'#791F1F'}
+];
+
+function emin3(l){const e=Math.exp(-l);return 3-e*(3+2*l+l*l/2);}
+function fmt(n){return '₹'+Math.round(n).toLocaleString('en-IN');}
+
+let charts={};
+
+function getInputs(){
+  return{s:parseFloat(document.getElementById('r-s').value),
+         inc:parseFloat(document.getElementById('r-inc').value),
+         alpha:parseFloat(document.getElementById('r-alpha').value),
+         beta:parseFloat(document.getElementById('r-season').value)};
+}
+
+function calc(s,inc,alpha,beta){
+  const lf=LF_MAX*s*beta, lp=LP_MAX*s*beta, lt=lf+lp;
+  const cday=alpha*inc, em=emin3(lt);
+  const epw=cday*W*em, pw=(1+THETA)*epw;
+  return{lf,lp,lt,cday,em,epw,pw,pm:pw*4.33,lr:epw/pw};
+}
+
+function go(id,el){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  el.classList.add('active');
+  if(id==='seasonal')buildSeasonal();
+  if(id==='stress')buildStress();
+  if(id==='fraud')buildFraud();
+  if(id==='basis')buildBasis();
+  if(id==='trigger'){buildTriggerMap();buildTriggerExamples();}
+}
+
+function update(){
+  const {s,inc,alpha,beta}=getInputs();
+  document.getElementById('o-s').textContent=s.toFixed(2);
+  document.getElementById('o-inc').textContent='₹'+inc;
+  document.getElementById('o-alpha').textContent=alpha.toFixed(2);
+  document.getElementById('o-beta').textContent='β '+beta.toFixed(1);
+  document.getElementById('ss-s').textContent=s.toFixed(2);
+  document.getElementById('ss-inc').textContent='₹'+inc;
+  document.getElementById('st-s').textContent=s.toFixed(2);
+
+  const c=calc(s,inc,alpha,beta);
+  document.getElementById('m-lf').textContent=c.lf.toFixed(3);
+  document.getElementById('m-lp').textContent=c.lp.toFixed(3);
+  document.getElementById('m-lt').textContent=c.lt.toFixed(3);
+  document.getElementById('m-cday').textContent=fmt(c.cday);
+  document.getElementById('m-emin').textContent=c.em.toFixed(4);
+  document.getElementById('m-epw').textContent=fmt(c.epw);
+  document.getElementById('m-fc').textContent=fmt(c.cday*(c.lf/c.lt)*c.em);
+  document.getElementById('m-pc').textContent=fmt(c.cday*0.5*(c.lp/c.lt)*c.em);
+  document.getElementById('m-epm').textContent=fmt(c.epw*4.33);
+  document.getElementById('m-pw').textContent=fmt(c.pw);
+  document.getElementById('m-pm').textContent=fmt(c.pm);
+  document.getElementById('m-afford').textContent=((c.pm/(inc*21))*100).toFixed(1)+'%';
+  document.getElementById('m-lr').textContent=(c.lr*100).toFixed(1)+'%';
+  document.getElementById('m-ops').textContent=fmt(c.pw*0.125);
+  document.getElementById('m-res').textContent=fmt(c.pw*0.10);
+  document.getElementById('m-rein').textContent=fmt(c.pw*0.10);
+
+  // Tier bar
+  const fp=Math.round(c.lf/c.lt*100), pp=Math.round(c.lp/c.lt*100);
+  document.getElementById('tier-bar').innerHTML=
+    `<div style="width:${fp}%;background:#1D9E75;"></div><div style="width:${pp}%;background:#EF9F27;"></div>`;
+  document.getElementById('tier-leg').innerHTML=
+    `<span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:2px;background:#1D9E75;display:inline-block;"></span>Full ${fp}%</span>`+
+    `<span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:2px;background:#EF9F27;display:inline-block;"></span>Partial ${pp}%</span>`;
+
+  document.getElementById('fml-main').textContent=
+    `λ_F = 0.20 × ${s.toFixed(2)} × ${beta.toFixed(1)} = ${c.lf.toFixed(3)}\n`+
+    `λ_P = 0.30 × ${s.toFixed(2)} × ${beta.toFixed(1)} = ${c.lp.toFixed(3)}\n`+
+    `λ_T = ${c.lt.toFixed(3)},  w = 0.700 (constant)\n`+
+    `E[min(N,3)] = 3 − e^(−${c.lt.toFixed(3)})(3 + ${(2*c.lt).toFixed(3)} + ${(c.lt*c.lt/2).toFixed(4)}) = ${c.em.toFixed(4)}\n`+
+    `E[Payout/wk] = ${fmt(c.cday)} × 0.700 × ${c.em.toFixed(4)} = ${fmt(c.epw)}\n`+
+    `P_weekly = 1.325 × ${fmt(c.epw)} = ${fmt(c.pw)}`;
+
+  const col=s<0.35?'#1D9E75':s<0.65?'#EF9F27':'#E24B4A';
+  const sn=beta<=0.5?'Dry':beta<=0.8?'Pre-monsoon':beta<=1.2?'SW monsoon':'NE monsoon';
+  document.getElementById('risk-lbl').textContent=(s<0.35?'Low':s<0.65?'Medium':'High')+' risk — '+sn;
+  document.getElementById('risk-fill').style.cssText=`height:6px;border-radius:3px;transition:width .3s,background .3s;width:${s*100}%;background:${col}`;
+
+  updateMainChartPos(s,inc,alpha,beta,c);
+}
+
+function buildMainChart(){
+  const {inc,alpha,beta}=getInputs();
+  const xs=[];for(let v=0.05;v<=0.95;v+=0.05)xs.push(+(v.toFixed(2)));
+  const pays=xs.map(v=>+calc(v,inc,alpha,beta).epw.toFixed(1));
+  const prems=xs.map(v=>+calc(v,inc,alpha,beta).pw.toFixed(1));
+  if(charts.main)charts.main.destroy();
+  charts.main=new Chart(document.getElementById('ch-main'),{
+    type:'line',
+    data:{labels:xs,datasets:[
+      {label:'E[Payout]',data:pays,borderColor:'#BA7517',backgroundColor:'rgba(186,117,23,0.08)',fill:true,tension:.4,pointRadius:0,borderWidth:2},
+      {label:'Premium',data:prems,borderColor:'#185FA5',backgroundColor:'rgba(24,95,165,0.06)',fill:true,tension:.4,pointRadius:0,borderWidth:2},
+      {label:'Position',data:xs.map(()=>null),borderColor:'#E24B4A',borderWidth:0,pointRadius:5,pointBackgroundColor:'#E24B4A',type:'scatter'}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{x:{title:{display:true,text:'Risk score s',font:{size:10}},ticks:{font:{size:9},maxTicksLimit:10}},
+              y:{title:{display:true,text:'₹/week',font:{size:10}},ticks:{font:{size:9},callback:v=>'₹'+v}}}}
+  });
+}
+
+function updateMainChartPos(s,inc,alpha,beta,c){
+  if(!charts.main)return;
+  const xs=charts.main.data.labels;
+  const pos=xs.map(()=>null);
+  const i=xs.reduce((bi,v,idx)=>Math.abs(v-s)<Math.abs(xs[bi]-s)?idx:bi,0);
+  pos[i]=c.epw;
+  charts.main.data.datasets[2].data=pos;
+  charts.main.update('none');
+}
+
+function buildTriggerMap(){
+  if(charts.trig)charts.trig.destroy();
+  const Is=[],Ds=[],full=[],part=[],none=[];
+  for(let i=2;i<=28;i+=2)Is.push(i);
+  for(let d=1;d<=8;d++)Ds.push(d);
+  Is.forEach(I=>Ds.forEach(D=>{
+    const v=I*D;
+    if(v>=50)full.push({x:I,y:D});
+    else if(v>=30)part.push({x:I,y:D});
+    else none.push({x:I,y:D});
+  }));
+  charts.trig=new Chart(document.getElementById('ch-trig'),{
+    type:'scatter',
+    data:{datasets:[
+      {label:'Full ≥50',data:full,backgroundColor:'rgba(29,158,117,0.5)',pointRadius:9,pointStyle:'rect'},
+      {label:'Partial 30–49',data:part,backgroundColor:'rgba(239,159,39,0.5)',pointRadius:9,pointStyle:'rect'},
+      {label:'None <30',data:none,backgroundColor:'rgba(136,135,128,0.18)',pointRadius:9,pointStyle:'rect'}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{x:{title:{display:true,text:'Intensity I (mm/hr)',font:{size:10}},ticks:{font:{size:9}}},
+              y:{title:{display:true,text:'Duration D (hours)',font:{size:10}},ticks:{font:{size:9}}}}}
+  });
+}
+
+function buildTriggerExamples(){
+  const examples=[
+    {e:'10 mm/hr × 5 hr',v:50,t:'Full',p:'1.0 × c_day'},
+    {e:'12 mm/hr × 3 hr',v:36,t:'Partial',p:'0.5 × c_day'},
+    {e:'18 mm/hr × 3 hr',v:54,t:'Full',p:'1.0 × c_day'},
+    {e:'8 mm/hr × 3 hr',v:24,t:'None',p:'₹0'},
+    {e:'6 mm/hr × 7 hr',v:42,t:'Partial',p:'0.5 × c_day'},
+    {e:'25 mm/hr × 2 hr',v:50,t:'Full',p:'1.0 × c_day'},
+  ];
+  const el=document.getElementById('trigger-examples');
+  el.innerHTML=examples.map(ex=>{
+    const bc=ex.t==='Full'?'ok':ex.t==='Partial'?'wn':'';
+    const bs=ex.t==='None'?'background:var(--color-background-secondary);color:var(--color-text-secondary);':'';
+    return`<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1.5fr;font-size:12px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);gap:4px;align-items:center;">
+      <span>${ex.e}</span><span style="font-weight:500;">${ex.v}</span>
+      <span><span class="badge ${bc}" style="${bs}">${ex.t}</span></span>
+      <span>${ex.p}</span></div>`;
+  }).join('');
+}
+
+function updateTrigger(){
+  const I=parseFloat(document.getElementById('r-I').value);
+  const D=parseFloat(document.getElementById('r-D').value);
+  document.getElementById('o-I').textContent=I.toFixed(1);
+  document.getElementById('o-D').textContent=D.toFixed(1);
+  const v=I*D;
+  const el=document.getElementById('trig-res');
+  document.getElementById('tr-score').textContent=`I × D = ${v.toFixed(1)}`;
+  let bg,col,verdict,pct;
+  if(v>=50){bg='var(--color-background-success)';col='var(--color-text-success)';verdict='FULL PAYOUT';pct='100% of daily indemnity';}
+  else if(v>=30){bg='var(--color-background-warning)';col='var(--color-text-warning)';verdict='PARTIAL PAYOUT';pct='50% of daily indemnity';}
+  else{bg='var(--color-background-secondary)';col='var(--color-text-secondary)';verdict='NO PAYOUT';pct='Below economic disruption threshold';}
+  el.style.background=bg;
+  document.getElementById('tr-verdict').style.color=col;
+  document.getElementById('tr-verdict').textContent=verdict;
+  document.getElementById('tr-pct').textContent=pct;
+}
+
+function buildSeasonal(){
+  const {s,inc,alpha}=getInputs();
+  const el=document.getElementById('season-cards');
+  el.innerHTML='';
+  SEASONS.forEach(ss=>{
+    const c=calc(s,inc,alpha,ss.b);
+    el.innerHTML+=`<div class="scard" style="background:${ss.bg};">
+      <div style="font-size:11px;font-weight:500;color:${ss.tx};margin:0 0 1px;">${ss.n}</div>
+      <div style="font-size:10px;color:${ss.tx};margin:0 0 4px;">${ss.m}</div>
+      <div style="font-size:10px;color:${ss.tx};">β = ${ss.b} · λ = ${c.lt.toFixed(3)}</div>
+      <div style="font-size:14px;font-weight:500;color:${ss.tx};margin:4px 0 2px;">${fmt(c.epw)}/wk</div>
+      <div style="font-size:10px;color:${ss.tx};">P: ${fmt(c.pw)}/wk</div>
+    </div>`;
+  });
+  const premM=MONTHS.map((_,i)=>Math.round(calc(s,inc,alpha,SEASON_BETAS[i]).pw*WEEKS_PER_MONTH[i]));
+  const payM=MONTHS.map((_,i)=>Math.round(calc(s,inc,alpha,SEASON_BETAS[i]).epw*WEEKS_PER_MONTH[i]));
+  const dryPrem=premM.slice(0,4).reduce((a,b)=>a+b,0);
+  const dryPay=payM.slice(0,4).reduce((a,b)=>a+b,0);
+  const nePrem=premM.slice(9).reduce((a,b)=>a+b,0);
+  const nePay=payM.slice(9).reduce((a,b)=>a+b,0);
+  document.getElementById('res-fml').textContent=
+    `Dry season (Jan–Apr): premium = ${fmt(dryPrem)}, payout = ${fmt(dryPay)}, reserve gain = ${fmt(dryPrem-dryPay)}\n`+
+    `NE monsoon (Oct–Dec): premium = ${fmt(nePrem)}, payout = ${fmt(nePay)}, reserve draw = ${fmt(Math.max(0,nePay-nePrem))}\n`+
+    `Annual balance: dry reserve ${fmt(dryPrem-dryPay)} vs monsoon draw ${fmt(Math.max(0,nePay-nePrem))}\n`+
+    `Verdict: ${(dryPrem-dryPay)>=(nePay-nePrem)?'Reserve surplus — system is self-funded annually':'Reserve deficit — supplement from reinsurance layer'}`;
+  if(charts.season)charts.season.destroy();
+  charts.season=new Chart(document.getElementById('ch-season'),{
+    type:'bar',
+    data:{labels:MONTHS,datasets:[
+      {label:'Premium',data:premM,backgroundColor:'rgba(24,95,165,0.55)',borderColor:'#185FA5',borderWidth:1,borderRadius:3},
+      {label:'E[Payout]',data:payM,backgroundColor:'rgba(186,117,23,0.5)',borderColor:'#BA7517',borderWidth:1,borderRadius:3}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{x:{ticks:{font:{size:9}}},y:{ticks:{font:{size:9},callback:v=>'₹'+v},title:{display:true,text:'₹/month',font:{size:10}}}}}
+  });
+}
+
+function buildStress(){
+  const {s,inc,alpha}=getInputs();
+  const cday=alpha*inc;
+  const basePremW=calc(s,inc,alpha,1.8).pw;
+  const sc=[
+    {n:'Normal NE monsoon',b:1.8,d:'Standard Oct–Dec'},
+    {n:'Spike ×2 (β = 3.6)',b:3.6,d:'Heavy monsoon year'},
+    {n:'Cyclone ×4 (β = 7.2)',b:7.2,d:'Direct cyclone hit'}
+  ];
+  const el=document.getElementById('stress-cards');
+  el.innerHTML='';
+  const lrVals=[];
+  sc.forEach(ss=>{
+    const lt=LT_MAX*s*ss.b;
+    const epw=cday*W*emin3(lt);
+    const lr=epw/basePremW;
+    lrVals.push(+((lr*100).toFixed(0)));
+    const bc=lr<0.8?'ok':lr<1.2?'wn':'bd';
+    const bl=lr<0.8?'Sustainable':lr<1.2?'XL buffer':'XL triggered';
+    el.innerHTML+=`<div class="stcard"><p class="sl">${ss.n}</p><p class="sv">${fmt(epw)}/wk</p>
+      <p class="sd">LR = ${(lr*100).toFixed(0)}% <span class="badge ${bc}">${bl}</span></p>
+      <p class="sd">${ss.d}</p></div>`;
+  });
+  const agg=document.getElementById('agg-cards');
+  agg.innerHTML='';
+  [100,500,1000].forEach(n=>{
+    const lt=LT_MAX*s*1.8;
+    const tot=n*cday*W*emin3(lt);
+    const ptot=n*basePremW;
+    agg.innerHTML+=`<div class="stcard"><p class="sl">${n} workers, 1 station</p>
+      <p class="sv">${fmt(tot)}/wk</p>
+      <p class="sd">Prem pool: ${fmt(ptot)}/wk</p>
+      <p class="sd">CAT reserve: ${fmt(tot*4)}</p></div>`;
+  });
+  if(charts.stress)charts.stress.destroy();
+  charts.stress=new Chart(document.getElementById('ch-stress'),{
+    type:'bar',
+    data:{labels:['Normal NE','Spike ×2','Cyclone ×4'],
+      datasets:[{label:'LR%',data:lrVals,
+        backgroundColor:lrVals.map(v=>v<80?'rgba(15,110,86,0.6)':v<120?'rgba(239,159,39,0.6)':'rgba(162,45,45,0.6)'),
+        borderColor:lrVals.map(v=>v<80?'#0F6E56':v<120?'#EF9F27':'#A32D2D'),borderWidth:1,borderRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{y:{min:0,max:Math.max(250,lrVals[2]+40),ticks:{font:{size:9},callback:v=>v+'%'}},x:{ticks:{font:{size:9}}}}}
+  });
+}
+
+function buildFraud(){
+  const {s,inc,alpha}=getInputs();
+  const cday=alpha*inc;
+  const premW=calc(s,inc,alpha,1.8).pw;
+  document.getElementById('fraud-proof').textContent=
+    `TIMING ATTACK: Worker learns storm arrives day T. Enrolls at T−7 so coverage = T+7 to T+13.\n`+
+    `Does the storm persist to T+7? Chennai convective storm lifespan: 6–18 hours.\n`+
+    `Cyclone: 3–5 day forecast horizon, not 7.\n`+
+    `P(qualifying event in T+7 to T+13 | storm at T) ≈ base Poisson rate only.\n`+
+    `Expected fraudster payout: ~3 × ${fmt(cday)} × 0.15 chance = ${fmt(3*cday*0.15)}\n`+
+    `Premium paid: ${fmt(premW)}\n`+
+    `Net EV = ${fmt(3*cday*0.15-premW)} (NEGATIVE). Attack is economically irrational.`;
+
+  const items=[
+    {ic:'⏱',t:'Enrollment timing attack',d:'7-day activation delay eliminates profitable storm-timing. Any specific storm will have passed before coverage activates. By memorylessness of Poisson, historical storm provides no information about covered window.'},
+    {ic:'👤',t:'Fake worker identity',d:'Real-time verification against Swiggy/Zomato API. Worker ID must exist in the live platform database. Spoofing requires platform-level access — outside any insurance fraud scope.'},
+    {ic:'📋',t:'Fabricated work history',d:'2-month minimum requires 60 days of verifiable order-logs in platform database. Economic cost of generating real delivery activity exceeds any insurance payout. Cannot be backdated.'},
+    {ic:'🌧',t:'False rainfall claim',d:'Zero-claim design: payouts triggered exclusively by IMD automated gauge data. There is no claim form, no reporting, no human decision. Fraud via false claim is structurally impossible.'},
+    {ic:'📊',t:'Partial tier gaming',d:'Earning only 0.5×c_day per partial event, the fraudster would need to correctly predict a partial event 7+ days ahead. Moderate Chennai rain is less predictable than extreme events. EV still negative.'},
+    {ic:'📍',t:'Multi-station enrollment',d:'Worker is mapped to exactly one station by zone. Cannot register multiple times at different stations. Platform API returns one worker_id, one zone, one policy.'}
+  ];
+  const el=document.getElementById('fraud-list');
+  el.innerHTML=items.map(it=>`<div class="fi"><div class="fi-ic">${it.ic}</div><div><p class="fi-t">${it.t}</p><p class="fi-d">${it.d}</p></div></div>`).join('');
+}
+
+function buildBasis(){
+  const items=[
+    {ic:'📍',t:'Zone-to-station mapping',d:'Each delivery zone (≤4km radius) is permanently mapped to the nearest IMD station. Workers see their assigned station at enrollment. Mapping is reviewed quarterly as IMD expands gauge coverage.'},
+    {ic:'📊',t:'Partial tier as buffer',d:'Events near the full/partial boundary (I×D = 44–56) that are mismeasured due to spatial variation will still trigger at least the partial tier. Pure misses only occur for events where I×D > 50 at worker location but < 30 at station — a very rare spatial gradient.'},
+    {ic:'🔄',t:'Annual λ recalibration',d:'λ_F_max and λ_P_max are recalibrated annually against actual IMD trigger-count data. If measured events deviate from model predictions by >15%, λ_max values are updated for the next policy year.'},
+    {ic:'🌐',t:'Disclosure at enrollment',d:'Workers are shown their assigned station, the approximate distance from their primary delivery zone, and the estimated basis risk percentage (~10–15%). This is disclosed transparently — workers accept the known spatial mismatch as part of the product design.'},
+    {ic:'📡',t:'Future: dense gauge network',d:'IMD is expanding Chennai coverage to 20+ gauges by 2026. Each additional gauge reduces average inter-station spacing from 5km to ~3km, reducing basis risk from ~13% to ~7%. The model accommodates this by rerunning the zone-to-station mapping.'}
+  ];
+  const el=document.getElementById('br-items');
+  el.innerHTML=items.map(it=>`<div class="br-card"><div style="display:flex;gap:10px;align-items:flex-start;"><div class="fi-ic">${it.ic}</div><div><p class="fi-t">${it.t}</p><p class="fi-d">${it.d}</p></div></div></div>`).join('');
+}
+
+// Init
+document.getElementById('r-s').addEventListener('input',update);
+document.getElementById('r-inc').addEventListener('input',update);
+document.getElementById('r-alpha').addEventListener('change',update);
+document.getElementById('r-season').addEventListener('change',update);
+document.getElementById('r-I').addEventListener('input',updateTrigger);
+document.getElementById('r-D').addEventListener('input',updateTrigger);
+buildMainChart();
+updateTrigger();
+buildTriggerExamples();
+update();
+</script>
