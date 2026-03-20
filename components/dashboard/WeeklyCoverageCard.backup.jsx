@@ -3,12 +3,12 @@ import { ShieldCheck, CalendarDays } from "lucide-react";
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
-export default function WeeklyCoverageCard({ data = {}, lang = "en", t = () => "" }) {
+export default function WeeklyCoverageCard({ data = {} }) {
   const {
     weekStart = "Dec 16",
     weekEnd = "Dec 22",
     coverageStatus = "active",
-    daysWithRain = [1, 3],
+    daysWithRain = [1, 3], // 0-indexed days that had qualifying rain
     payouts = [
       { day: 1, amount: 320 },
       { day: 3, amount: 480 },
@@ -25,7 +25,7 @@ export default function WeeklyCoverageCard({ data = {}, lang = "en", t = () => "
       <div className="flex items-start justify-between mb-6">
         <div>
           <p className="text-slate-400 text-xs font-medium uppercase tracking-wide mb-1">
-            {t("weeklyCoverage", lang)}
+            Weekly Coverage
           </p>
           <h3 className="font-display text-lg font-semibold text-white">
             {weekStart} – {weekEnd}
@@ -33,7 +33,7 @@ export default function WeeklyCoverageCard({ data = {}, lang = "en", t = () => "
         </div>
         <div className="flex items-center gap-2">
           <ShieldCheck className="w-4 h-4 text-emerald-400" />
-          <span className="text-emerald-400 text-xs font-medium">{t("covered", lang)}</span>
+          <span className="text-emerald-400 text-xs font-medium">Covered</span>
         </div>
       </div>
 
@@ -79,7 +79,7 @@ export default function WeeklyCoverageCard({ data = {}, lang = "en", t = () => "
       {/* Payout progress */}
       <div className="bg-navy-800/60 rounded-xl px-4 py-3">
         <div className="flex justify-between items-center mb-2">
-          <span className="text-slate-400 text-xs">{t("weekPayout", lang)}</span>
+          <span className="text-slate-400 text-xs">Week Payout</span>
           <span className="text-white text-sm font-semibold">
             ₹{totalPayout}{" "}
             <span className="text-slate-500 font-normal">/ ₹{maxPayout}</span>
@@ -96,11 +96,9 @@ export default function WeeklyCoverageCard({ data = {}, lang = "en", t = () => "
       <div className="flex items-center justify-between mt-4 text-xs">
         <div className="flex items-center gap-1.5 text-slate-400">
           <CalendarDays className="w-3.5 h-3.5" />
-          {t("renewsOn", lang)} {nextRenewal}
+          Renews {nextRenewal}
         </div>
-        <span className="text-slate-400">
-          {daysWithRain.length} {daysWithRain.length === 1 ? t("rainDaysThisWeek", lang) : t("rainDaysThisWeekPlural", lang)}
-        </span>
+        <span className="text-slate-400">{daysWithRain.length} rain day{daysWithRain.length !== 1 ? "s" : ""} this week</span>
       </div>
     </div>
   );

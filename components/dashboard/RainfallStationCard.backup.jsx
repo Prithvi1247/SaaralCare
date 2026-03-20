@@ -1,23 +1,41 @@
 // components/dashboard/RainfallStationCard.jsx
+// NEW: Added trigger info for full/partial payouts
 import { CloudRain, Radio, TrendingUp, AlertCircle } from "lucide-react";
 
-export default function RainfallStationCard({ data = {}, lang = "en", t = () => "" }) {
+export default function RainfallStationCard({ data = {} }) {
   const {
-    stationId = "STN-001",
+    stationId = "IMD_MUM_001",
     stationName = "Santacruz Observatory",
     distance = "2.3 km",
-    lastReading = 0,
+    lastReading = 22.4,
     threshold = 15,
     updatedAt = "2 min ago",
-    trend = "stable",
+    trend = "rising", // "rising" | "falling" | "stable"
     alertActive = false,
   } = data;
 
   const exceedsThreshold = lastReading >= threshold;
-  const rainColor = lastReading >= 30 ? "text-red-400" : lastReading >= 15 ? "text-amber-400" : "text-rain-400";
-  const rainLevel = lastReading >= 30 ? "Heavy" : lastReading >= 15 ? "Moderate" : "Light";
+  const rainLevel =
+    lastReading >= 30 ? "Heavy" : lastReading >= 15 ? "Moderate" : lastReading >= 5 ? "Light" : "Trace";
+
+  const rainColor =
+    lastReading >= 30
+      ? "text-red-400"
+      : lastReading >= 15
+      ? "text-amber-400"
+      : lastReading >= 5
+      ? "text-rain-400"
+      : "text-slate-400";
+
   const trendIcon = trend === "rising" ? "↑" : trend === "falling" ? "↓" : "→";
-  const trendColor = trend === "rising" ? "text-red-400" : trend === "falling" ? "text-emerald-400" : "text-slate-400";
+  const trendColor =
+    trend === "rising"
+      ? "text-red-400"
+      : trend === "falling"
+      ? "text-emerald-400"
+      : "text-slate-400";
+
+  // Progress bar width (0–50mm scale)
   const barWidth = Math.min((lastReading / 50) * 100, 100);
 
   return (
@@ -25,7 +43,7 @@ export default function RainfallStationCard({ data = {}, lang = "en", t = () => 
       <div className="flex items-start justify-between mb-5">
         <div>
           <p className="text-slate-400 text-xs font-medium uppercase tracking-wide mb-1">
-            {t("mappedStation", lang)}
+            Mapped Station
           </p>
           <h3 className="font-display text-lg font-semibold text-white leading-tight">
             {stationName}
@@ -53,7 +71,7 @@ export default function RainfallStationCard({ data = {}, lang = "en", t = () => 
       <div className="bg-navy-800/60 rounded-xl px-4 py-4 mb-4">
         <div className="flex items-end justify-between mb-3">
           <div>
-            <p className="text-slate-400 text-xs mb-1">{t("lastReading", lang)}</p>
+            <p className="text-slate-400 text-xs mb-1">Rainfall (last 3hr)</p>
             <div className="flex items-baseline gap-1.5">
               <span className={`font-display text-4xl font-bold ${rainColor}`}>
                 {lastReading}
@@ -94,32 +112,32 @@ export default function RainfallStationCard({ data = {}, lang = "en", t = () => 
         </div>
         <div className="flex justify-between text-xs text-slate-500 mt-1.5">
           <span>0mm</span>
-          <span className="text-slate-400">{t("threshold", lang)}: {threshold}mm</span>
+          <span className="text-slate-400">Threshold: {threshold}mm</span>
           <span>50mm+</span>
         </div>
       </div>
 
       {/* NEW: Trigger info */}
       <div className="bg-navy-800/40 rounded-lg p-3.5 border border-navy-700/50">
-        <p className="text-slate-400 text-xs font-medium uppercase tracking-wide mb-2">{t("payoutTriggers", lang)}</p>
+        <p className="text-slate-400 text-xs font-medium uppercase tracking-wide mb-2">Payout Triggers</p>
         <div className="space-y-1.5 text-xs">
           <div className="flex items-start gap-2">
             <span className="text-emerald-400 font-bold mt-0.5">●</span>
             <span className="text-slate-300">
-              <span className="font-medium">Full Payout:</span> {t("fullPayoutWhen", lang)}
+              <span className="font-medium">Full Payout:</span> When rainfall index × days ≥ 50
             </span>
           </div>
           <div className="flex items-start gap-2">
             <span className="text-amber-400 font-bold mt-0.5">●</span>
             <span className="text-slate-300">
-              <span className="font-medium">Partial Payout:</span> {t("partialPayoutWhen", lang)}
+              <span className="font-medium">Partial Payout:</span> When 30 ≤ rainfall index × days &lt; 50
             </span>
           </div>
         </div>
       </div>
 
       {/* Timestamp */}
-      <p className="text-slate-500 text-xs mt-4">{t("updated", lang)} {updatedAt}</p>
+      <p className="text-slate-500 text-xs mt-4">Updated {updatedAt}</p>
     </div>
   );
 }

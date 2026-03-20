@@ -1,4 +1,5 @@
 // components/dashboard/ClaimHistory.jsx
+// NEW: Added payout type labels (Full/Partial)
 import { CloudRain, Clock, CheckCircle2, XCircle, AlertCircle, FileText } from "lucide-react";
 
 const STATUS_CONFIG = {
@@ -23,6 +24,13 @@ const STATUS_CONFIG = {
     bg: "bg-slate-500/10",
     border: "border-slate-500/20",
   },
+};
+
+// NEW: Payout type mapping
+const getPayoutLabel = (type) => {
+  if (type === "full") return "Full Payout";
+  if (type === "partial") return "Partial Payout";
+  return "Payout";
 };
 
 const MOCK_CLAIMS = [
@@ -68,14 +76,7 @@ const MOCK_CLAIMS = [
   },
 ];
 
-// NEW: Payout type mapping
-const getPayoutLabel = (type, lang, t) => {
-  if (type === "full") return lang === "hi" ? "पूर्ण भुगतान" : "Full Payout";
-  if (type === "partial") return lang === "hi" ? "आंशिक भुगतान" : "Partial Payout";
-  return type;
-};
-
-export default function ClaimHistory({ claims = MOCK_CLAIMS, payouts = [], lang = "en", t = () => "" }) {
+export default function ClaimHistory({ claims = MOCK_CLAIMS, payouts = [] }) {
   // NEW: Support payouts prop from dashboard
   const displayPayouts = payouts && payouts.length > 0
     ? payouts.map((p, i) => ({
@@ -99,15 +100,15 @@ export default function ClaimHistory({ claims = MOCK_CLAIMS, payouts = [], lang 
       <div className="flex items-center justify-between mb-6">
         <div>
           <p className="text-slate-400 text-xs font-medium uppercase tracking-wide mb-1">
-            {t("payoutHistory", lang)}
+            Payout History
           </p>
           <h3 className="font-display text-lg font-semibold text-white">
-            ₹{totalPaid.toLocaleString()} {t("totalReceived", lang)}
+            ₹{totalPaid.toLocaleString()} total received
           </h3>
         </div>
         <div className="flex items-center gap-1.5 text-slate-400 text-xs">
           <FileText className="w-3.5 h-3.5" />
-          {displayPayouts.length} {t("events", lang)}
+          {displayPayouts.length} events
         </div>
       </div>
 
@@ -116,16 +117,6 @@ export default function ClaimHistory({ claims = MOCK_CLAIMS, payouts = [], lang 
         {displayPayouts.map((claim) => {
           const cfg = STATUS_CONFIG[claim.status] || STATUS_CONFIG.rejected;
           const Icon = cfg.icon;
-
-          // NEW: Map status labels with i18n
-          let statusLabel = cfg.label;
-          if (claim.status === "paid") {
-            statusLabel = getPayoutLabel(claim.type, lang, t);
-          } else if (claim.status === "processing") {
-            statusLabel = t("processing", lang);
-          } else if (claim.status === "rejected") {
-            statusLabel = t("notTriggered", lang);
-          }
 
           return (
             <div
@@ -139,7 +130,8 @@ export default function ClaimHistory({ claims = MOCK_CLAIMS, payouts = [], lang 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-1">
                   <p className={`font-medium text-sm ${cfg.color}`}>
-                    {statusLabel}
+                    {/* NEW: Show payout type */}
+                    {claim.status === "paid" ? getPayoutLabel(claim.type) : cfg.label}
                   </p>
                   <span className="text-white font-semibold">
                     {claim.status === "paid" ? `+₹${claim.amount}` : "—"}
@@ -153,18 +145,18 @@ export default function ClaimHistory({ claims = MOCK_CLAIMS, payouts = [], lang 
                 </div>
                 {claim.paidAt && (
                   <p className="text-slate-500 text-xs mt-0.5">
-                    {t("paid", lang)} {claim.paidAt}
+                    Paid {claim.paidAt}
                   </p>
                 )}
                 {claim.status === "processing" && (
                   <p className="text-amber-400 text-xs mt-0.5 flex items-center gap-1">
                     <AlertCircle className="w-3 h-3" />
-                    {t("processingUpTo4Hours", lang)}
+                    Processing — up to 4 hours
                   </p>
                 )}
                 {claim.status === "rejected" && (
                   <p className="text-slate-500 text-xs mt-0.5">
-                    {t("rainfallBelowThreshold", lang)}
+                    Rainfall below trigger threshold
                   </p>
                 )}
               </div>

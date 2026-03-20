@@ -1,11 +1,11 @@
-// pages/dashboard.js — Worker dashboard with language support
-// NEW: Added plan lifecycle, insurance UI, payout labeling, and i18n support
+// pages/dashboard.js — Worker dashboard
+// NEW: Added plan lifecycle, insurance UI, and payout labeling.
 
 import { useState, useEffect } from "react";
 import Head from "next/head";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { Shield, Bell, LogOut, RefreshCw, CloudRain, CheckCircle2, AlertCircle, Clock, Calendar, Globe } from "lucide-react";
+import { Shield, Bell, LogOut, RefreshCw, CloudRain, Map, CheckCircle2, AlertCircle, Clock, Calendar } from "lucide-react";
 
 import WorkerZoneCard       from "@/components/dashboard/WorkerZoneCard";
 import RainfallStationCard  from "@/components/dashboard/RainfallStationCard";
@@ -24,124 +24,6 @@ const RainfallMap = dynamic(() => import("@/components/map/RainfallMap"), {
   ),
 });
 
-// NEW: Translation dictionary
-const T = {
-  en: {
-    goodMorning: "Good morning",
-    goodAfternoon: "Good afternoon",
-    goodEvening: "Good evening",
-    coverageStatus: "Your coverage status",
-    weeklyPremium: "Weekly Premium",
-    monthlyPremium: "Monthly (approx)",
-    coveragePerDay: "Per rainy day",
-    maxWeeklyPayout: "Max weekly payout",
-    basedOnZone: "Based on your zone risk & season",
-    insuranceCoverage: "Insurance Coverage",
-    noPlan: "No Active Coverage",
-    noActiveCoverage: "No active coverage. Get protected with a weekly plan.",
-    coveragePeriod: "Coverage Period",
-    dailyBenefit: "Daily Benefit",
-    rainTrigger: "Rain Trigger",
-    fullPayoutWhen: "Full payout when rainfall index × days ≥ 50",
-    partialPayoutWhen: "Partial payout when 30–49",
-    yourCoverage: "Your Coverage",
-    buyPlan: "Buy Plan",
-    renewPlan: "Renew Plan",
-    activating: "Activating...",
-    payoutHistory: "Payout History",
-    rainfallStations: "Rainfall Stations — Mumbai Region",
-    workerProfile: "Worker Profile",
-    deliveryZone: "Delivery Zone",
-    vehicle: "Vehicle",
-    platform: "Platform",
-    memberSince: "Member Since",
-    totalReceived: "total received",
-    events: "events",
-    paid: "Paid",
-    processing: "Processing",
-    notTriggered: "Not Triggered",
-    processingUpTo4Hours: "Processing — up to 4 hours",
-    rainfallBelowThreshold: "Rainfall below trigger threshold",
-    premiumPayments: "Premium & Payments",
-    totalPaid: "Total Paid",
-    totalReceivedValue: "Total Received",
-    savingsRatio: "Savings Ratio",
-    youReceived: "You've received",
-    moreThanPaid: "more than you paid in premiums.",
-    nextDeduction: "Next deduction",
-    recentPayments: "Recent Payments",
-    mappedStation: "Mapped Station",
-    lastReading: "Rainfall (last 3hr)",
-    threshold: "Threshold",
-    payoutTriggers: "Payout Triggers",
-    updated: "Updated",
-    weeklyCoverage: "Weekly Coverage",
-    covered: "Covered",
-    weekPayout: "Week Payout",
-    renewsOn: "Renews",
-    rainDaysThisWeek: "rain day",
-    rainDaysThisWeekPlural: "rain days this week",
-    logout: "Logout",
-  },
-  hi: {
-    goodMorning: "सुप्रभात",
-    goodAfternoon: "शुभ दोपहर",
-    goodEvening: "शुभ संध्या",
-    coverageStatus: "आपकी कवरेज स्थिति",
-    weeklyPremium: "साप्ताहिक प्रीमियम",
-    monthlyPremium: "मासिक (अनुमानित)",
-    coveragePerDay: "प्रति बारिश दिन",
-    maxWeeklyPayout: "साप्ताहिक अधिकतम भुगतान",
-    basedOnZone: "आपके क्षेत्र जोखिम और मौसम पर आधारित",
-    insuranceCoverage: "बीमा कवरेज",
-    noPlan: "कोई सक्रिय कवरेज नहीं",
-    noActiveCoverage: "कोई सक्रिय कवरेज नहीं। साप्ताहिक योजना के साथ सुरक्षित रहें।",
-    coveragePeriod: "कवरेज अवधि",
-    dailyBenefit: "दैनिक लाभ",
-    rainTrigger: "बारिश ट्रिगर",
-    fullPayoutWhen: "पूर्ण भुगतान जब बारिश सूचकांक × दिन ≥ 50",
-    partialPayoutWhen: "आंशिक भुगतान जब 30–49",
-    yourCoverage: "आपकी कवरेज",
-    buyPlan: "योजना खरीदें",
-    renewPlan: "नवीनीकरण करें",
-    activating: "सक्रिय हो रहा है...",
-    payoutHistory: "भुगतान इतिहास",
-    rainfallStations: "बारिश स्टेशन — मुंबई क्षेत्र",
-    workerProfile: "कार्यकर्ता प्रोफाइल",
-    deliveryZone: "डिलीवरी क्षेत्र",
-    vehicle: "वाहन",
-    platform: "मंच",
-    memberSince: "सदस्य बनाया",
-    totalReceived: "कुल प्राप्त",
-    events: "घटनाएं",
-    paid: "भुगतान किया गया",
-    processing: "प्रसंस्करण",
-    notTriggered: "ट्रिगर नहीं हुआ",
-    processingUpTo4Hours: "प्रसंस्करण — 4 घंटे तक",
-    rainfallBelowThreshold: "बारिश सीमा से नीचे",
-    premiumPayments: "प्रीमियम और भुगतान",
-    totalPaid: "कुल भुगतान",
-    totalReceivedValue: "कुल प्राप्त",
-    savingsRatio: "बचत अनुपात",
-    youReceived: "आपको प्राप्त हुआ",
-    moreThanPaid: "जो आपने प्रीमियम में भुगतान किया उससे अधिक।",
-    nextDeduction: "अगली कटौती",
-    recentPayments: "हाल ही के भुगतान",
-    mappedStation: "मानचित्र स्टेशन",
-    lastReading: "बारिश (पिछले 3 घंटे)",
-    threshold: "सीमा",
-    payoutTriggers: "भुगतान ट्रिगर",
-    updated: "अपडेट किया गया",
-    weeklyCoverage: "साप्ताहिक कवरेज",
-    covered: "संरक्षित",
-    weekPayout: "सप्ताह भुगतान",
-    renewsOn: "नवीनीकरण",
-    rainDaysThisWeek: "बारिश दिन",
-    rainDaysThisWeekPlural: "बारिश दिन इस सप्ताह",
-    logout: "लॉगआउट",
-  }
-};
-
 // ── Static fallbacks for data not yet in Supabase ─────────────────────────────
 const STATIC_COVERAGE = {
   weekStart: "Dec 16", weekEnd: "Dec 22",
@@ -159,9 +41,6 @@ const STATIC_PREMIUM = {
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
-/** NEW: Translation helper */
-const t = (key, lang) => T[lang]?.[key] || key;
 
 /** Format a Supabase timestamp into "Month YYYY" */
 function formatMonthYear(isoString) {
@@ -237,25 +116,12 @@ export default function DashboardPage() {
   const [error, setError]         = useState("");
   const [workerData, setWorkerData] = useState(null);
 
-  // NEW: Language state
-  const [lang, setLang] = useState(() => {
-    if (typeof window === "undefined") return "en";
-    return sessionStorage.getItem("sc_lang") || "en";
-  });
-
   // NEW: Plan lifecycle state
   const [plan, setPlan] = useState(() => {
     if (typeof window === "undefined") return { paymentDate: null };
     const stored = sessionStorage.getItem("sc_plan");
     return stored ? JSON.parse(stored) : { paymentDate: null };
   });
-
-  // NEW: Persist language
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      sessionStorage.setItem("sc_lang", lang);
-    }
-  }, [lang]);
 
   // NEW: Persist plan state
   useEffect(() => {
@@ -276,6 +142,7 @@ export default function DashboardPage() {
           return;
         }
 
+        // ── 1. Fetch worker row ───────────────────────────────────────────
         const { data: worker, error: wErr } = await supabase
           .from("workers")
           .select("id, name, phone, platform, zone, latitude, longitude, station_id, avg_daily_income, created_at")
@@ -285,6 +152,7 @@ export default function DashboardPage() {
         if (wErr)    throw new Error(wErr.message);
         if (!worker) throw new Error("Worker record not found. Please complete onboarding.");
 
+        // ── 2. Fetch matched station details ──────────────────────────────
         let stationRow = null;
         if (worker.station_id) {
           const { data: st, error: stErr } = await supabase
@@ -296,6 +164,8 @@ export default function DashboardPage() {
           if (stErr) throw new Error(stErr.message);
           stationRow = st;
         }
+
+        // ── 3. Shape data for UI cards ────────────────────────────────────
 
         const workerCardData = {
           name:        worker.name,
@@ -341,10 +211,12 @@ export default function DashboardPage() {
     }
   }
 
+  // NEW: Handle buy/renew plan
   function handleBuyPlan() {
     setPlan({ paymentDate: new Date().toISOString() });
   }
 
+  // NEW: Get plan info
   const planStatus = getPlanStatus(plan.paymentDate);
   const statusColors = {
     active: { bg: "bg-emerald-500/15", border: "border-emerald-500/30", badge: "bg-emerald-500/20 text-emerald-300", icon: CheckCircle2 },
@@ -355,6 +227,7 @@ export default function DashboardPage() {
   const colors = statusColors[planStatus.status];
   const StatusIcon = colors.icon;
 
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <>
       <Head>
@@ -362,6 +235,7 @@ export default function DashboardPage() {
       </Head>
 
       <div className="min-h-screen bg-navy-950">
+        {/* Top navbar — unchanged */}
         <header className="sticky top-0 z-40 bg-navy-950/90 backdrop-blur-md border-b border-navy-800">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2.5">
@@ -378,22 +252,12 @@ export default function DashboardPage() {
               <div className="hidden sm:flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 rounded-full px-4 py-1.5">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                 <span className="text-emerald-300 text-xs font-medium">
-                  {t("insuranceCoverage", lang)} · {formatDateRange(planStatus.startDate, planStatus.endDate)}
+                  Coverage Active · {formatDateRange(planStatus.startDate, planStatus.endDate)}
                 </span>
               </div>
             )}
 
             <div className="flex items-center gap-3">
-              {/* NEW: Language toggle */}
-              <button
-                onClick={() => setLang(lang === "en" ? "hi" : "en")}
-                className="flex items-center gap-1.5 text-slate-400 hover:text-white text-xs transition-colors"
-                title="Toggle language"
-              >
-                <Globe className="w-4 h-4" />
-                <span>{lang === "en" ? "हिन्दी" : "English"}</span>
-              </button>
-
               <button className="relative w-9 h-9 rounded-lg bg-navy-800 hover:bg-navy-700 flex items-center justify-center transition-colors">
                 <Bell className="w-4 h-4 text-slate-400" />
                 <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-amber-400" />
@@ -403,12 +267,13 @@ export default function DashboardPage() {
                 className="flex items-center gap-1.5 text-slate-400 hover:text-white text-sm transition-colors"
               >
                 <LogOut className="w-4 h-4" />
-                <span className="hidden sm:inline">{t("logout", lang)}</span>
+                <span className="hidden sm:inline">Logout</span>
               </button>
             </div>
           </div>
         </header>
 
+        {/* Main content */}
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {loading ? (
             <DashboardSkeleton />
@@ -416,27 +281,30 @@ export default function DashboardPage() {
             <ErrorState message={error} onLogout={handleLogout} />
           ) : (
             <>
+              {/* Greeting */}
               <div className="mb-8 animate-fade-up opacity-0">
                 <h1 className="font-display text-3xl font-bold text-white">
-                  {t("good" + getTimeOfDay().charAt(0).toUpperCase() + getTimeOfDay().slice(1), lang)}, {workerData.worker.name.split(" ")[0]} 👋
+                  Good {getTimeOfDay()}, {workerData.worker.name.split(" ")[0]} 👋
                 </h1>
                 <p className="text-slate-400 text-sm mt-1">
-                  {t("coverageStatus", lang)}: <span className={planStatus.status === "active" ? "text-emerald-400" : "text-amber-400"} className="font-medium">{planStatus.label}</span>
+                  Your coverage status: <span className={planStatus.status === "active" ? "text-emerald-400 font-medium" : "text-amber-400 font-medium"}>{planStatus.label}</span>
                 </p>
               </div>
 
+              {/* Top row */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
                 <div className="animate-fade-up opacity-0 delay-100">
-                  <WorkerZoneCard data={workerData.worker} lang={lang} t={t} />
+                  <WorkerZoneCard data={workerData.worker} />
                 </div>
                 <div className="animate-fade-up opacity-0 delay-200">
-                  <RainfallStationCard data={workerData.station} lang={lang} t={t} />
+                  <RainfallStationCard data={workerData.station} />
                 </div>
                 <div className="animate-fade-up opacity-0 delay-300">
-                  <WeeklyCoverageCard data={workerData.coverage} lang={lang} t={t} />
+                  <WeeklyCoverageCard data={workerData.coverage} />
                 </div>
               </div>
 
+              {/* NEW: Insurance Plan Card + Premium */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-5">
                 <div className="lg:col-span-2 animate-fade-up opacity-0 delay-400">
                   <div className={`glass-card gradient-border rounded-2xl p-6 border ${colors.border}`}>
@@ -444,64 +312,68 @@ export default function DashboardPage() {
                       <div>
                         <div className="flex items-center gap-2 mb-2">
                           <StatusIcon className="w-5 h-5" style={{ color: planStatus.color === "emerald" ? "#34d399" : planStatus.color === "amber" ? "#fbbf24" : planStatus.color === "red" ? "#f87171" : "#cbd5e1" }} />
-                          <h3 className="font-display text-xl font-bold text-white">{t("insuranceCoverage", lang)}</h3>
+                          <h3 className="font-display text-xl font-bold text-white">Insurance Coverage</h3>
                         </div>
                         <p className={`text-sm ${colors.badge} px-2.5 py-1 rounded-full inline-block`}>{planStatus.label}</p>
                       </div>
                       <Calendar className="w-5 h-5 text-slate-500" />
                     </div>
 
+                    {/* NEW: Plan details */}
                     <div className={`rounded-xl p-5 mb-6 ${colors.bg}`}>
                       {planStatus.status === "none" ? (
-                        <p className="text-slate-400 text-sm">{t("noActiveCoverage", lang)}</p>
+                        <p className="text-slate-400 text-sm">No active coverage. Get protected with a weekly plan.</p>
                       ) : (
                         <>
                           <div className="grid grid-cols-2 gap-4">
                             <div>
-                              <p className="text-slate-400 text-xs uppercase tracking-wide mb-1">{t("coveragePeriod", lang)}</p>
+                              <p className="text-slate-400 text-xs uppercase tracking-wide mb-1">Coverage Period</p>
                               <p className="text-white font-semibold">{formatDateRange(planStatus.startDate, planStatus.endDate)}</p>
                             </div>
                             <div>
-                              <p className="text-slate-400 text-xs uppercase tracking-wide mb-1">{t("dailyBenefit", lang)}</p>
+                              <p className="text-slate-400 text-xs uppercase tracking-wide mb-1">Daily Benefit</p>
                               <p className="text-white font-semibold">₹{workerData.premium.dailyCoverage}</p>
                             </div>
                           </div>
                           <div className="mt-4 pt-4 border-t border-slate-600/40">
-                            <p className="text-slate-400 text-xs mb-1">{t("rainTrigger", lang)}</p>
-                            <p className="text-slate-300 text-sm">{t("fullPayoutWhen", lang)} | {t("partialPayoutWhen", lang)}</p>
+                            <p className="text-slate-400 text-xs mb-1">Rain Trigger</p>
+                            <p className="text-slate-300 text-sm">Full payout when rainfall index × days ≥ 50 | Partial payout when 30–49</p>
                           </div>
                         </>
                       )}
                     </div>
 
+                    {/* NEW: Premium pricing */}
                     <div className="grid grid-cols-2 gap-4 mb-6">
                       <div className="bg-navy-800/50 rounded-lg p-4">
-                        <p className="text-slate-400 text-xs uppercase tracking-wide mb-1">{t("weeklyPremium", lang)}</p>
+                        <p className="text-slate-400 text-xs uppercase tracking-wide mb-1">Weekly Premium</p>
                         <p className="font-display text-2xl font-bold text-rain-400">₹{workerData.premium.weeklyPremium}</p>
                       </div>
                       <div className="bg-navy-800/50 rounded-lg p-4">
-                        <p className="text-slate-400 text-xs uppercase tracking-wide mb-1">{t("monthlyPremium", lang)}</p>
+                        <p className="text-slate-400 text-xs uppercase tracking-wide mb-1">Monthly (approx)</p>
                         <p className="font-display text-2xl font-bold text-rain-400">₹{workerData.premium.monthlyPremium}</p>
                       </div>
                     </div>
 
+                    {/* NEW: Coverage info */}
                     <div className="bg-navy-800/30 rounded-lg p-4 mb-6 border border-navy-700">
-                      <p className="text-slate-400 text-xs uppercase tracking-wide mb-3 font-medium">{t("yourCoverage", lang)}</p>
+                      <p className="text-slate-400 text-xs uppercase tracking-wide mb-3 font-medium">Your Coverage</p>
                       <div className="space-y-2">
                         <div className="flex justify-between text-sm">
-                          <span className="text-slate-400">{t("coveragePerDay", lang)}</span>
+                          <span className="text-slate-400">Per rainy day</span>
                           <span className="text-white font-semibold">₹{workerData.premium.dailyCoverage}</span>
                         </div>
                         <div className="flex justify-between text-sm">
-                          <span className="text-slate-400">{t("maxWeeklyPayout", lang)}</span>
+                          <span className="text-slate-400">Max weekly payout</span>
                           <span className="text-white font-semibold">₹{workerData.premium.maxWeeklyPayout}</span>
                         </div>
                         <div className="flex justify-between text-xs text-slate-500 pt-2 border-t border-navy-700">
-                          <span>{t("basedOnZone", lang)}</span>
+                          <span>Based on your zone risk & season</span>
                         </div>
                       </div>
                     </div>
 
+                    {/* NEW: Action button */}
                     <button
                       onClick={handleBuyPlan}
                       disabled={planStatus.status === "activating"}
@@ -513,23 +385,25 @@ export default function DashboardPage() {
                           : "bg-emerald-500 hover:bg-emerald-600 text-white"
                       }`}
                     >
-                      {planStatus.status === "none" ? t("buyPlan", lang) : planStatus.status === "activating" ? t("activating", lang) : t("renewPlan", lang)}
+                      {planStatus.status === "none" ? "Buy Plan" : planStatus.status === "activating" ? "Activating..." : "Renew Plan"}
                     </button>
                   </div>
                 </div>
 
+                {/* Original premium card repositioned */}
                 <div className="animate-fade-up opacity-0 delay-500">
-                  <PremiumCard data={workerData.premium} lang={lang} t={t} />
+                  <PremiumCard data={workerData.premium} />
                 </div>
               </div>
 
+              {/* Map */}
               <div className="mb-5 animate-fade-up opacity-0 delay-600">
                 <div className="glass-card gradient-border rounded-2xl overflow-hidden h-[380px]">
                   <div className="flex items-center justify-between px-5 py-4 border-b border-navy-700">
                     <div className="flex items-center gap-2">
                       <CloudRain className="w-4 h-4 text-rain-400" />
                       <span className="text-white font-medium text-sm">
-                        {t("rainfallStations", lang)}
+                        Rainfall Stations — Mumbai Region
                       </span>
                     </div>
                   </div>
@@ -539,8 +413,9 @@ export default function DashboardPage() {
                 </div>
               </div>
 
+              {/* Claim history with NEW labels */}
               <div className="animate-fade-up opacity-0 delay-700">
-                <ClaimHistory payouts={workerData.coverage.payouts} lang={lang} t={t} />
+                <ClaimHistory payouts={workerData.coverage.payouts} />
               </div>
             </>
           )}
@@ -549,6 +424,8 @@ export default function DashboardPage() {
     </>
   );
 }
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
 function getTimeOfDay() {
   const h = new Date().getHours();
