@@ -1,144 +1,170 @@
 // components/map/RainfallMap.jsx
-// Leaflet must be loaded client-side only (no SSR)
+// Fixed Leaflet map with proper data fetching, centering, and marker rendering
+
 import { useEffect, useRef, useState } from "react";
-import { CloudRain, Loader2 } from "lucide-react";
+import "leaflet/dist/leaflet.css";
+import { supabase } from "@/lib/supabaseClient";
 
-// Mock stations for initial render; replace with API data
-const MOCK_STATIONS = [
-  { id: "IMD_MUM_001", name: "Santacruz Observatory", lat: 19.0759, lng: 72.8777, rainfall: 22.4, active: true },
-  { id: "IMD_MUM_002", name: "Colaba Observatory", lat: 18.9067, lng: 72.8147, rainfall: 8.1, active: true },
-  { id: "IMD_MUM_003", name: "Thane Station", lat: 19.2183, lng: 72.9781, rainfall: 35.7, active: true },
-  { id: "IMD_MUM_004", name: "Navi Mumbai Station", lat: 19.0330, lng: 73.0297, rainfall: 14.2, active: false },
-];
-
-function getRainfallColor(mm) {
-  if (mm >= 30) return "#ef4444";  // Heavy — red
-  if (mm >= 15) return "#f59e0b";  // Moderate — amber
-  if (mm >= 5)  return "#3a9fd4";  // Light — rain blue
-  return "#64748b";                 // Trace — grey
+function getRiskColor(riskLabel) {
+  if (!riskLabel) return "#3a9fd4"; // default blue
+  const label = riskLabel.toLowerCase();
+  if (label.includes("high")) return "#ef4444";     // red
+  if (label.includes("moderate")) return "#f59e0b"; // orange
+  if (label.includes("low")) return "#10b981";      // green
+  return "#3a9fd4"; // rain blue
 }
 
-export default function RainfallMap({ workerStation = null, stations = null }) {
+export default function RainfallMap({ workerStation = null }) {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
-  const [loaded, setLoaded] = useState(false);
+  const [stations, setStations] = useState([]);
+  const [workerPos, setWorkerPos] = useState([11, 78]); // fallback center
+  const [loading, setLoading] = useState(true);
 
-  const displayStations = stations || MOCK_STATIONS;
+  // Fetch data once on mount
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        // Fetch stations from risk_score table
+        const { data: stationsData, error: stError } = await supabase
+          .from("risk_score")
+          .select("*");
 
+        if (stError) throw stError;
+        setStations(stationsData || []);
+
+        // Fetch current worker location
+        const phone = typeof window !== "undefined"
+          ? sessionStorage.getItem("gs_worker_phone")
+          : null;
+
+        if (phone) {
+          const { data: worker, error: wError } = await supabase
+            .from("workers")
+            .select("latitude, longitude")
+            .eq("phone", phone)
+            .maybeSingle();
+
+          if (!wError && worker?.latitude && worker?.longitude) {
+            setWorkerPos([worker.latitude, worker.longitude]);
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching map data:", err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchData();
+  }, []);
+
+  // Initialize map once on first render
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (mapInstanceRef.current) return; // already initialised
-    if (mapRef.current) return; // already initialised
+    if (!mapRef.current) return;
+    if (mapInstanceRef.current) return;
 
-    // Dynamically import Leaflet (avoids SSR crash)
     import("leaflet").then((L) => {
-      // Fix default icon paths
       delete L.Icon.Default.prototype._getIconUrl;
       L.Icon.Default.mergeOptions({
         iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
         iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
         shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
       });
-      
-      
+
       const map = L.map(mapRef.current, {
-        center: [19.076, 72.877],
+        center: workerPos,
         zoom: 11,
         zoomControl: false,
         attributionControl: false,
       });
 
-      // Dark tile layer
-      L.tileLayer(
-        "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
-        { maxZoom: 18 }
-      ).addTo(map);
+      mapInstanceRef.current = map;
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 18,
+      }).addTo(map);
 
       L.control.zoom({ position: "bottomright" }).addTo(map);
 
-      // Render station markers
-      displayStations.forEach((station) => {
-        const color = getRainfallColor(station.rainfall);
-        const isWorkerStation = workerStation && station.id === workerStation;
-
-        // Custom circle marker
-        const marker = L.circleMarker([station.lat, station.lng], {
-          radius: isWorkerStation ? 14 : 10,
-          fillColor: color,
-          color: isWorkerStation ? "#ffffff" : color,
-          weight: isWorkerStation ? 3 : 1,
-          opacity: 1,
-          fillOpacity: 0.85,
-        }).addTo(map);
-
-        // Pulse ring for active worker station
-        if (isWorkerStation) {
-          L.circleMarker([station.lat, station.lng], {
-            radius: 22,
-            fillColor: "transparent",
-            color: color,
-            weight: 2,
-            opacity: 0.4,
-          }).addTo(map);
-        }
-
-        marker.bindPopup(
-          `<div style="font-family:'DM Sans',sans-serif;background:#0a1628;color:#e2e8f0;border-radius:8px;padding:10px 14px;min-width:180px;border:1px solid rgba(58,159,212,0.2)">
-            <div style="font-weight:600;font-size:13px;margin-bottom:6px;">${station.name}</div>
-            <div style="font-size:12px;color:#94a3b8;">Rainfall (3hr)</div>
-            <div style="font-size:22px;font-weight:700;color:${color};margin-top:2px;">${station.rainfall} <span style="font-size:13px;font-weight:400">mm</span></div>
-            <div style="margin-top:8px;font-size:11px;padding:3px 8px;background:${station.active ? "rgba(16,185,129,0.1)" : "rgba(100,116,139,0.1)"};border-radius:20px;color:${station.active ? "#34d399" : "#94a3b8"};display:inline-block;">
-              ${station.active ? "● Active" : "○ Offline"}
-            </div>
-          </div>`,
-          { className: "leaflet-dark-popup" }
-        );
-      });
-
-      mapInstanceRef.current = map;
-      setLoaded(true);
+      // Store L for use in marker effect
+      map._L = L;
     });
-
-    return () => {
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove();
-        mapInstanceRef.current = null;
-      }
-    };
   }, []);
 
+  // Add/update markers when data changes
+  useEffect(() => {
+    if (!mapInstanceRef.current || !mapInstanceRef.current._L) return;
+
+    const L = mapInstanceRef.current._L;
+    const map = mapInstanceRef.current;
+
+    // Clear existing markers (but keep map base layers)
+    map.eachLayer((layer) => {
+      if (layer instanceof L.CircleMarker || layer instanceof L.Marker) {
+        map.removeLayer(layer);
+      }
+    });
+
+    // Re-center map on worker position
+    map.setView(workerPos, 11, { animate: false });
+
+    // Add worker marker (blue dot)
+    L.circleMarker(workerPos, {
+      radius: 12,
+      fillColor: "#3b82f6",
+      color: "#ffffff",
+      weight: 3,
+      opacity: 1,
+      fillOpacity: 0.9,
+    }).addTo(map).bindPopup("Your Location");
+
+    // Add station markers
+    stations.forEach((station) => {
+      if (!station.latitude || !station.longitude) return;
+
+      const color = getRiskColor(station.predicted_label);
+      const isWorkerStation = workerStation && station.id === workerStation;
+
+      const marker = L.circleMarker([station.latitude, station.longitude], {
+        radius: isWorkerStation ? 14 : 10,
+        fillColor: color,
+        color: isWorkerStation ? "#ffffff" : color,
+        weight: isWorkerStation ? 3 : 1,
+        opacity: 1,
+        fillOpacity: 0.85,
+      }).addTo(map);
+
+      // Pulse ring for worker's mapped station
+      if (isWorkerStation) {
+        L.circleMarker([station.latitude, station.longitude], {
+          radius: 22,
+          fillColor: "transparent",
+          color: color,
+          weight: 2,
+          opacity: 0.6,
+          dashArray: "4,4",
+          lineCap: "round",
+        }).addTo(map);
+      }
+
+      const popupContent = `
+        <div style="font-size: 12px; color: #333;">
+          <strong>${station.station || station.district}</strong><br/>
+          Risk: ${station.predicted_label || "—"}<br/>
+          Score: ${(station.risk_score || 0).toFixed(2)}
+        </div>
+      `;
+      marker.bindPopup(popupContent);
+    });
+  }, [stations, workerPos, workerStation]);
+
   return (
-    <div className="relative w-full h-full rounded-xl overflow-hidden">
-      {/* Map container */}
-      <div ref={mapRef} className="w-full h-full" />
-
-      {/* Loading overlay */}
-      {!loaded && (
-        <div className="absolute inset-0 bg-navy-900 flex flex-col items-center justify-center gap-3">
-          <Loader2 className="w-6 h-6 text-rain-400 animate-spin" />
-          <span className="text-slate-400 text-sm">Loading map…</span>
-        </div>
-      )}
-
-      {/* Legend */}
-      {loaded && (
-        <div className="absolute bottom-3 left-3 glass-card rounded-lg px-3 py-2.5 text-xs space-y-1.5">
-          <div className="flex items-center gap-1.5 text-slate-300 font-medium mb-1">
-            <CloudRain className="w-3 h-3 text-rain-400" /> Rainfall (3hr)
-          </div>
-          {[
-            { label: "Heavy ≥30mm", color: "#ef4444" },
-            { label: "Moderate ≥15mm", color: "#f59e0b" },
-            { label: "Light ≥5mm", color: "#3a9fd4" },
-            { label: "Trace", color: "#64748b" },
-          ].map((l) => (
-            <div key={l.label} className="flex items-center gap-2">
-              <div className="w-2.5 h-2.5 rounded-full" style={{ background: l.color }} />
-              <span className="text-slate-400">{l.label}</span>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+    <div
+      ref={mapRef}
+      className="w-full rounded-lg bg-navy-900 border border-navy-700"
+      style={{ height: "500px" }}
+    />
   );
 }
