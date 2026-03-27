@@ -236,6 +236,7 @@ export default function DashboardPage() {
   const [loading, setLoading]     = useState(true);
   const [error, setError]         = useState("");
   const [workerData, setWorkerData] = useState(null);
+  const [policy, setPolicy] = useState(null);
 
   // NEW: Language state
   const [lang, setLang] = useState(() => {
@@ -284,6 +285,16 @@ export default function DashboardPage() {
 
         if (wErr)    throw new Error(wErr.message);
         if (!worker) throw new Error("Worker record not found. Please complete onboarding.");
+        // 🔥 Fetch policy data from Supabase
+        const { data: policyData, error: policyError } = await supabase
+          .from("policy_calculation")
+          .select("*")
+          .limit(1)
+          .single();
+
+        if (!policyError) {
+          setPolicy(policyData);
+}
 
         let stationRow = null;
         if (worker.station_id) {
@@ -322,7 +333,20 @@ export default function DashboardPage() {
           worker:   workerCardData,
           station:  stationCardData,
           coverage: STATIC_COVERAGE,
-          premium:  { ...STATIC_PREMIUM, upiId: `${worker.name?.split(" ")[0]?.toLowerCase()}@upi` },
+          premium: policyData
+          ? {
+            weeklyPremium: policyData.premium_weekly,
+            monthlyPremium: Math.round(policyData.premium_weekly * 4.33),
+            dailyCoverage: policyData.coverage_per_day,
+            maxWeeklyPayout: policyData.coverage_cap ?? policyData.coverage_per_day * 3,
+            totalPaid: STATIC_PREMIUM.totalPaid,
+            totalReceived: STATIC_PREMIUM.totalReceived,
+            weeksActive: STATIC_PREMIUM.weeksActive,
+            nextDeductionDate: STATIC_PREMIUM.nextDeductionDate,
+            upiId: `${worker.name?.split(" ")[0]?.toLowerCase()}@upi`,
+            savingsRatio: STATIC_PREMIUM.savingsRatio,
+          }
+          : { ...STATIC_PREMIUM, upiId: `${worker.name?.split(" ")[0]?.toLowerCase()}@upi` },
         });
       } catch (err) {
         setError(err.message);
@@ -421,7 +445,7 @@ export default function DashboardPage() {
                   {t("good" + getTimeOfDay().charAt(0).toUpperCase() + getTimeOfDay().slice(1), lang)}, {workerData.worker.name.split(" ")[0]} 👋
                 </h1>
                 <p className="text-slate-400 text-sm mt-1">
-                  {t("coverageStatus", lang)}: <span className={planStatus.status === "active" ? "text-emerald-400" : "text-amber-400"} className="font-medium">{planStatus.label}</span>
+                  {t("coverageStatus", lang)}: <span className={`font-medium ${planStatus.status === "active" ? "text-emerald-400" : "text-amber-400"}`}></span>
                 </p>
               </div>
 
