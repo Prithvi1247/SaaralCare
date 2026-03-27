@@ -11,7 +11,8 @@ export default async function handler(req, res) {
     if (!amount) {
       return res.status(400).json({ error: "Amount required" });
     }
-
+    console.log("URL:", process.env.NEXT_PUBLIC_SUPABASE_URL);
+    console.log("KEY:", process.env.SUPABASE_SERVICE_ROLE_KEY);
     const razorpay = new Razorpay({
       key_id: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
       key_secret: process.env.RAZORPAY_KEY_SECRET,

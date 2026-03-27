@@ -268,7 +268,7 @@ export default function DashboardPage() {
           window.location.href = "/login";
           return;
         }
-
+        
         const { data: worker, error: wErr } = await supabase
           .from("workers")
           .select("id, name, phone, platform, zone, latitude, longitude, station_id, avg_daily_income, created_at")
@@ -356,14 +356,25 @@ export default function DashboardPage() {
       window.location.href = "/login";
     }
   }
-
+  
   async function handleBuyPlan() {
   try {
     if (!policy) {
       alert("Policy not loaded");
       return;
     }
+    const { data: workerRow, error } = await supabase
+          .from("workers")
+          .select("id")
+          .eq("phone", workerData.worker.phone)
+          .single();
 
+        if (error || !workerRow) {
+          alert("Worker not found in DB");
+          return;
+        }
+
+        const workerId = workerRow.id;
     const amount = policy.premium_weekly;
 
     // 1. Create order from backend
@@ -385,22 +396,59 @@ export default function DashboardPage() {
       name: "SaaralCare AI",
       description: "Weekly Insurance Plan",
       order_id: order.id,
+      method: {
+          upi: true,
+          card: true,
+          netbanking: true,
+          wallet: true,
+        },
 
-      handler: async function () {
-        // 3. Save payment in DB
-        await supabase.from("premium_payments").insert([
-          {
-            worker_id: workerData?.worker?.phone, // use id if available
-            premium_amount: amount,
-            transaction_time: new Date(),
+        // ✅ ADD THIS (IMPORTANT)
+        prefill: {
+          contact: workerData?.worker?.phone || "9999999999",
+          email: "test@example.com",
+        },
+
+        theme: {
+          color: "#0f172a",
+        },
+      handler: async (response) => {
+      try {
+        console.log("workerid:", workerId);
+        // if (!workerData?.id) {
+        //   alert("Worker not loaded");
+        //   return;
+        // }
+        const res = await fetch("/api/verify-payment", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
           },
-        ]);
+          body: JSON.stringify({
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature,
+            worker_id: workerId,
+            amount: amount,
+          }),
+        });
 
-        // 4. Activate plan
-        setPlan({ paymentDate: new Date().toISOString() });
+        const data = await res.json();
 
-        alert("Payment Successful!");
-      },
+        if (data.success) {
+          // ✅ Activate plan
+          setPlan({ paymentDate: new Date().toISOString() });
+
+          alert("Payment Successful!");
+        } else {
+          alert("Payment verification failed");
+        }
+
+      } catch (err) {
+        console.error(err);
+        alert("Something went wrong");
+      }
+    }
     };
 
     const rzp = new window.Razorpay(options);
