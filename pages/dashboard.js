@@ -15,14 +15,6 @@ import ClaimHistory         from "@/components/dashboard/ClaimHistory";
 import { supabase }         from "@/lib/supabaseClient";
 
 // Leaflet must load client-side only
-const RainfallMap = dynamic(() => import("@/components/map/RainfallMap"), {
-  ssr: false,
-  loading: () => (
-    <div className="w-full h-full flex items-center justify-center bg-navy-900 rounded-xl">
-      <RefreshCw className="w-5 h-5 text-rain-400 animate-spin" />
-    </div>
-  ),
-});
 
 // NEW: Translation dictionary
 const T = {
@@ -365,9 +357,60 @@ export default function DashboardPage() {
     }
   }
 
-  function handleBuyPlan() {
-    setPlan({ paymentDate: new Date().toISOString() });
+  async function handleBuyPlan() {
+  try {
+    if (!policy) {
+      alert("Policy not loaded");
+      return;
+    }
+
+    const amount = policy.premium_weekly;
+
+    // 1. Create order from backend
+    const res = await fetch("/api/create-order", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ amount }),
+    });
+
+    const order = await res.json();
+
+    // 2. Open Razorpay
+    const options = {
+      key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+      amount: order.amount,
+      currency: "INR",
+      name: "SaaralCare AI",
+      description: "Weekly Insurance Plan",
+      order_id: order.id,
+
+      handler: async function () {
+        // 3. Save payment in DB
+        await supabase.from("premium_payments").insert([
+          {
+            worker_id: workerData?.worker?.phone, // use id if available
+            premium_amount: amount,
+            transaction_time: new Date(),
+          },
+        ]);
+
+        // 4. Activate plan
+        setPlan({ paymentDate: new Date().toISOString() });
+
+        alert("Payment Successful!");
+      },
+    };
+
+    const rzp = new window.Razorpay(options);
+    rzp.open();
+
+  } catch (err) {
+    console.error(err);
+    alert("Payment failed");
   }
+}
 
   const planStatus = getPlanStatus(plan.paymentDate);
   const statusColors = {
@@ -383,6 +426,7 @@ export default function DashboardPage() {
     <>
       <Head>
         <title>Dashboard — SaaralCare AI</title>
+        <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
       </Head>
 
       <div className="min-h-screen bg-navy-950">
@@ -547,21 +591,7 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              <div className="mb-5 animate-fade-up opacity-0 delay-600">
-                <div className="glass-card gradient-border rounded-2xl overflow-hidden h-[380px]">
-                  <div className="flex items-center justify-between px-5 py-4 border-b border-navy-700">
-                    <div className="flex items-center gap-2">
-                      <CloudRain className="w-4 h-4 text-rain-400" />
-                      <span className="text-white font-medium text-sm">
-                        {t("rainfallStations", lang)}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="h-[calc(100%-57px)]">
-                    <RainfallMap workerStation={workerData.station.stationId} />
-                  </div>
-                </div>
-              </div>
+              
 
               <div className="animate-fade-up opacity-0 delay-700">
                 <ClaimHistory payouts={workerData.coverage.payouts} lang={lang} t={t} />
