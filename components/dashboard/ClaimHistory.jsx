@@ -70,8 +70,8 @@ const MOCK_CLAIMS = [
 
 // NEW: Payout type mapping
 const getPayoutLabel = (type, lang, t) => {
-  if (type === "full") return lang === "hi" ? "पूर्ण भुगतान" : lang === "ta" ? "முழு பணம் வழங்கல்" : "Full Payout";
-  if (type === "partial") return lang === "hi" ? "आंशिक भुगतान" : lang === "ta" ? "பகுதியளவு பணம் வழங்கல்" : "Partial Payout";
+  if (type === "full") return lang === "hi" ? "पूर्ण भुगतान" : "Full Payout";
+  if (type === "partial") return lang === "hi" ? "आंशिक भुगतान" : "Partial Payout";
   return type;
 };
 

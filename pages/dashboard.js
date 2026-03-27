@@ -139,63 +139,6 @@ const T = {
     rainDaysThisWeek: "बारिश दिन",
     rainDaysThisWeekPlural: "बारिश दिन इस सप्ताह",
     logout: "लॉगआउट",
-  },
-  ta: {
-    goodMorning: "நல்லை",
-    goodAfternoon: "நல்லிரவு",
-    goodEvening: "நல்லைக",
-    coverageStatus: "உங்கள் கவரேஜ் நிலை",
-    weeklyPremium: "வாரந்தோறும் பிரீமியம்",
-    monthlyPremium: "மாதம் (சுமார்)",
-    coveragePerDay: "ஒவ்வொரு மழை நாளுக்கும்",
-    maxWeeklyPayout: "வாரத்திற்கு அதிக பணம் வழங்கல்",
-    basedOnZone: "உங்கள் மண்டல ஆபத்து மற்றும் பருவம் அடிப்படையில்",
-    insuranceCoverage: "காப்பீடு கவரேஜ்",
-    noPlan: "செயல்பட கூடிய கவரேஜ் இல்லை",
-    noActiveCoverage: "எந்த செயல்பட கூடிய கவரேஜ் இல்லை. வாரந்தோறும் திட்டம் பெறவும்.",
-    coveragePeriod: "கவரேஜ் காலம்",
-    dailyBenefit: "தினசரி நன்மை",
-    rainTrigger: "மழை தூண்டுதல்",
-    fullPayoutWhen: "முழு பணம் வழங்கல் மழை சூசக × நாட்கள் ≥ 50",
-    partialPayoutWhen: "பகுதியளவு பணம் வழங்கல் 30–49",
-    yourCoverage: "உங்கள் கவரேஜ்",
-    buyPlan: "திட்டம் வாங்கவும்",
-    renewPlan: "திட்டத்தை புதுப்பிக்கவும்",
-    activating: "செயல்படுத்துதல்...",
-    payoutHistory: "பணம் வழங்கல் வரலாறு",
-    rainfallStations: "மழை நிலையங்கள் — மும்பை பிராந்தியம்",
-    workerProfile: "பணியாளர் சுயவிவரம்",
-    deliveryZone: "விநியோக மண்டலம்",
-    vehicle: "வாகனம்",
-    platform: "தளம்",
-    memberSince: "உறுப்பினரான முதல்",
-    totalReceived: "மொத்த பெறப்பட்ட",
-    events: "நிகழ்வுகள்",
-    paid: "பணம் வழங்கப்பட்டு",
-    processing: "செயல்படுவது",
-    notTriggered: "தூண்டப்படாத",
-    processingUpTo4Hours: "செயல்படுவது — 4 மணி நேரம் வரை",
-    rainfallBelowThreshold: "மழை தாழ்வாய் கீழே",
-    premiumPayments: "பிரீமியம் மற்றும் பணம் வழங்கல்",
-    totalPaid: "மொத்த பணம் வழங்கல்",
-    totalReceivedValue: "மொத்த பெறப்பட்ட",
-    savingsRatio: "சேமிப்பு விகிதம்",
-    youReceived: "நீங்கள் பெற்றிருக்கிறீர்கள்",
-    moreThanPaid: "நீங்கள் பிரீமியம்ஸில் கொடுத்தது விட அதிகம்।",
-    nextDeduction: "அடுத்த கழித்தல்",
-    recentPayments: "சமீபத்திய பணம் வழங்கல்",
-    mappedStation: "மேப்பட நிலையம்",
-    lastReading: "மழை (கடந்த 3hr)",
-    threshold: "தாழ்வாய்",
-    payoutTriggers: "பணம் வழங்கல் தூண்டுதல்",
-    updated: "புதுப்பிக்கப்பட்டு",
-    weeklyCoverage: "வாரந்தோறும் கவரேஜ்",
-    covered: "கவரேஜ் செய்யப்பட்ட",
-    weekPayout: "வாரத்திற்கு பணம் வழங்கல்",
-    renewsOn: "புதுப்பிக்கிறது",
-    rainDaysThisWeek: "மழை நாள்",
-    rainDaysThisWeekPlural: "மழை நாட்கள் இந்த வாரத்தில்",
-    logout: "வெளியேற",
   }
 };
 
@@ -443,12 +386,12 @@ export default function DashboardPage() {
             <div className="flex items-center gap-3">
               {/* NEW: Language toggle */}
               <button
-                onClick={() => setLang(lang === "en" ? "hi" : lang === "hi" ? "ta" : "en")}
+                onClick={() => setLang(lang === "en" ? "hi" : "en")}
                 className="flex items-center gap-1.5 text-slate-400 hover:text-white text-xs transition-colors"
                 title="Toggle language"
               >
                 <Globe className="w-4 h-4" />
-                <span>{lang === "en" ? "हिन्दी" : lang === "hi" ? "தமிழ்" : "English"}</span>
+                <span>{lang === "en" ? "हिन्दी" : "English"}</span>
               </button>
 
               <button className="relative w-9 h-9 rounded-lg bg-navy-800 hover:bg-navy-700 flex items-center justify-center transition-colors">
