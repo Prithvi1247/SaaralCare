@@ -11,6 +11,8 @@ export default function LandingPage() {
     <>
       <Head>
         <title>SaaralCare AI — Rain Shouldn't Drain Your Income</title>
+       
+        {/* <link rel="shortcut icon" href="/favicon.ico" /> */}
         <meta
           name="description"
           content="Parametric income protection for delivery workers. Automatic payouts when heavy rain cuts your earnings."

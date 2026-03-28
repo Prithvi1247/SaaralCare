@@ -163,26 +163,26 @@ function formatMonthYear(isoString) {
   });
 }
 
-/** NEW: Get plan status and dates */
-function getPlanStatus(paymentDate) {
-  if (!paymentDate) {
+/** NEW: Get plan status and dates from active_plans data */
+function getPlanStatus(activePlan) {
+  if (!activePlan?.activation_time) {
     return { status: "none", label: "No Active Coverage", daysUntilStart: null, startDate: null, endDate: null, color: "slate" };
   }
 
-  const payment = new Date(paymentDate);
-  const startDate = new Date(payment);
-  startDate.setDate(startDate.getDate() + 7);
-  
-  const endDate = new Date(payment);
-  endDate.setDate(endDate.getDate() + 14);
-
+  const activation = new Date(activePlan.activation_time);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  startDate.setHours(0, 0, 0, 0);
+  activation.setHours(0, 0, 0, 0);
+
+  // Calculate 7-day coverage period
+  const startDate = new Date(activation);
+  const endDate = new Date(activation);
+  endDate.setDate(endDate.getDate() + 7);
   endDate.setHours(0, 0, 0, 0);
 
-  if (today < startDate) {
-    const daysUntil = Math.ceil((startDate - today) / (1000 * 60 * 60 * 24));
+  // Coverage hasn't started yet (more than 7 days in future)
+  if (today < activation) {
+    const daysUntil = Math.ceil((activation - today) / (1000 * 60 * 60 * 24));
     return { 
       status: "activating", 
       label: `Activating (starts in ${daysUntil} day${daysUntil !== 1 ? 's' : ''})`,
@@ -193,7 +193,8 @@ function getPlanStatus(paymentDate) {
     };
   }
 
-  if (today >= startDate && today <= endDate) {
+  // Coverage is active (between activation and activation + 7 days)
+  if (today >= activation && today <= endDate) {
     return { 
       status: "active", 
       label: "Coverage Active",
@@ -204,6 +205,7 @@ function getPlanStatus(paymentDate) {
     };
   }
 
+  // Coverage has expired
   return { 
     status: "expired", 
     label: "Expired",
@@ -322,10 +324,25 @@ export default function DashboardPage() {
           alertActive: false,
         };
 
+        // 🔥 Fetch active plan from database
+        let activePlan = null;
+        const { data: activePlanData } = await supabase
+          .from("active_plans")
+          .select("*")
+          .eq("worker_id", worker.id)
+          .order("activation_time", { ascending: false })
+          .limit(1)
+          .single();
+        
+        if (activePlanData) {
+          activePlan = activePlanData;
+        }
+
         setWorkerData({
           worker:   workerCardData,
           station:  stationCardData,
           coverage: STATIC_COVERAGE,
+          activePlan: activePlan,
           premium: policyData
           ? {
             weeklyPremium: policyData.premium_weekly,
@@ -387,20 +404,61 @@ export default function DashboardPage() {
       description: "Weekly Insurance Plan",
       order_id: order.id,
 
-      handler: async function () {
-        // 3. Save payment in DB
-        await supabase.from("premium_payments").insert([
-          {
-            worker_id: workerData?.worker?.phone, // use id if available
-            premium_amount: amount,
-            transaction_time: new Date(),
-          },
-        ]);
+      handler: async (response) => {
+        try {
+          // 3. Verify payment with backend
+          const verifyRes = await fetch("/api/verify-payment", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              worker_id: workerData?.worker?.id,
+              amount: amount,
+            }),
+          });
 
-        // 4. Activate plan
-        setPlan({ paymentDate: new Date().toISOString() });
+          const data = await verifyRes.json();
 
-        alert("Payment Successful!");
+          if (data.success) {
+            alert("Payment Successful!");
+            
+            // ✅ Refetch worker data to update active_plans
+            const phone = sessionStorage.getItem("gs_worker_phone");
+            if (phone) {
+              const { data: updatedWorker } = await supabase
+                .from("workers")
+                .select("*")
+                .eq("phone", phone)
+                .maybeSingle();
+              
+              if (updatedWorker) {
+                // Fetch active plan
+                const { data: activePlanData } = await supabase
+                  .from("active_plans")
+                  .select("*")
+                  .eq("worker_id", updatedWorker.id)
+                  .order("activation_time", { ascending: false })
+                  .limit(1)
+                  .single();
+                
+                // Update workerData with new plan info
+                setWorkerData(prev => ({
+                  ...prev,
+                  activePlan: activePlanData || null
+                }));
+              }
+            }
+          } else {
+            alert("Payment verification failed");
+          }
+        } catch (err) {
+          console.error("Payment handler error:", err);
+          alert("Something went wrong");
+        }
       },
     };
 
@@ -413,7 +471,8 @@ export default function DashboardPage() {
   }
 }
 
-  const planStatus = getPlanStatus(plan.paymentDate);
+  // Fetch plan status from database, not frontend state
+  const planStatus = getPlanStatus(workerData?.activePlan || null);
   const statusColors = {
     active: { bg: "bg-emerald-500/15", border: "border-emerald-500/30", badge: "bg-emerald-500/20 text-emerald-300", icon: CheckCircle2 },
     activating: { bg: "bg-amber-500/15", border: "border-amber-500/30", badge: "bg-amber-500/20 text-amber-300", icon: Clock },
