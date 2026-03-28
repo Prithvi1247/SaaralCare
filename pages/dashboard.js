@@ -277,12 +277,13 @@ export default function DashboardPage() {
 
         if (wErr)    throw new Error(wErr.message);
         if (!worker) throw new Error("Worker record not found. Please complete onboarding.");
-        // 🔥 Fetch policy data from Supabase
+        // Fetch policy data from Supabase
         const { data: policyData, error: policyError } = await supabase
-          .from("policy_calculation")
-          .select("*")
-          .limit(1)
-          .single();
+        .from("policy_calculation")
+        .select("*")
+        .eq("worker_id", worker.id)
+        .single();
+       
 
         if (!policyError) {
           setPolicy(policyData);
@@ -596,8 +597,8 @@ export default function DashboardPage() {
                         <p className="font-display text-2xl font-bold text-rain-400">₹{workerData.premium.weeklyPremium}</p>
                       </div>
                       <div className="bg-navy-800/50 rounded-lg p-4">
-                        <p className="text-slate-400 text-xs uppercase tracking-wide mb-1">{t("monthlyPremium", lang)}</p>
-                        <p className="font-display text-2xl font-bold text-rain-400">₹{workerData.premium.monthlyPremium}</p>
+                        <p className="text-slate-400 text-xs uppercase tracking-wide mb-1">{t("coveragePerDay", lang)}</p>
+                        <p className="font-display text-2xl font-bold text-rain-400">₹{workerData.premium.dailyCoverage}</p>
                       </div>
                     </div>
 
@@ -605,8 +606,8 @@ export default function DashboardPage() {
                       <p className="text-slate-400 text-xs uppercase tracking-wide mb-3 font-medium">{t("yourCoverage", lang)}</p>
                       <div className="space-y-2">
                         <div className="flex justify-between text-sm">
-                          <span className="text-slate-400">{t("coveragePerDay", lang)}</span>
-                          <span className="text-white font-semibold">₹{workerData.premium.dailyCoverage}</span>
+                          <span className="text-slate-400">{t("monthlyPremium", lang)}</span>
+                          <span className="text-white font-semibold">₹{workerData.premium.monthlyPremium}</span>
                         </div>
                         <div className="flex justify-between text-sm">
                           <span className="text-slate-400">{t("maxWeeklyPayout", lang)}</span>
