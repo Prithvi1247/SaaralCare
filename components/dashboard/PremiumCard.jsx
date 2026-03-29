@@ -11,14 +11,8 @@ export default function PremiumCard({ data = {}, lang = "en", t = () => "" }) {
     paymentMethod = "UPI Auto-debit",
     upiId = "rahul@ybl",
     savingsRatio = 5.1,
+    recentPayments = [] 
   } = data;
-
-  const recentPayments = [
-    { date: "Dec 16", amount: 29, status: "paid" },
-    { date: "Dec 9", amount: 29, status: "paid" },
-    { date: "Dec 2", amount: 29, status: "paid" },
-    { date: "Nov 25", amount: 29, status: "paid" },
-  ];
 
   return (
     <div className="glass-card gradient-border rounded-2xl p-6 h-full">

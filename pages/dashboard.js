@@ -289,7 +289,57 @@ export default function DashboardPage() {
 
         if (!policyError) {
           setPolicy(policyData);
-}
+        }
+
+        const { data: payments, error: paymentsError } = await supabase
+        .from("premium_payments")
+        .select("*")
+        .eq("worker_id", worker.id);
+
+        if (paymentsError) {
+          console.error("Payments fetch error:", paymentsError);
+        }
+
+        const { data: payouts, error: payoutError } = await supabase
+          .from("coverage_payout")
+          .select("*")
+          .eq("worker_id", worker.id);
+        if (payoutError) {
+          console.error("Payout fetch error:", payoutError);
+        }
+
+        console.log("Worker ID:", worker.id);
+        console.log("Payouts from DB:", payouts);
+
+        const formattedPayouts = payouts
+          ?.sort((a, b) => new Date(b.payout_time) - new Date(a.payout_time))
+          .map((p) => ({
+            amount: p.payout_amount,
+            type: p.payout_amount >= 400 ? "full" : "partial",
+          })) || [];
+
+        const totalPaid =
+          payments?.reduce((sum, p) => sum + (p.premium_amount || 0), 0) || 0;
+        const weeksActive = payments?.length || 0;  
+
+        const totalReceivedDynamic =
+          payouts?.reduce((sum, p) => sum + (p.payout_amount || 0), 0) || 0;
+
+        const savingsRatio = 
+          totalPaid > 0
+            ? (totalReceivedDynamic / totalPaid).toFixed(1)
+            : 0;
+            
+        const recentPayments = payments
+          ?.sort((a, b) => new Date(b.transaction_time) - new Date(a.transaction_time))
+          .map((p) => ({
+            date: new Date(p.transaction_time).toLocaleDateString("en-IN", {
+              month: "short",
+              day: "numeric",
+            }),
+            amount: p.premium_amount,
+            status: "paid",
+          })) || [];
 
         let stationRow = null;
         if (worker.station_id) {
@@ -341,22 +391,34 @@ export default function DashboardPage() {
         setWorkerData({
           worker:   workerCardData,
           station:  stationCardData,
-          coverage: STATIC_COVERAGE,
           activePlan: activePlan,
-          premium: policyData
-          ? {
-            weeklyPremium: policyData.premium_weekly,
-            monthlyPremium: Math.round(policyData.premium_weekly * 4.33),
-            dailyCoverage: policyData.coverage_per_day,
-            maxWeeklyPayout: policyData.coverage_cap ?? policyData.coverage_per_day * 3,
-            totalPaid: STATIC_PREMIUM.totalPaid,
-            totalReceived: STATIC_PREMIUM.totalReceived,
-            weeksActive: STATIC_PREMIUM.weeksActive,
+          coverage:
+            payouts && payouts.length > 0
+              ? {
+                  ...STATIC_COVERAGE,
+                  payouts: formattedPayouts,
+                  totalPayout: totalReceivedDynamic,
+                  maxPayout: totalReceivedDynamic,
+                }
+              : STATIC_COVERAGE,
+          premium: {
+            weeklyPremium: policyData?.premium_weekly ?? 0,
+            monthlyPremium: policyData
+              ? policyData.premium_weekly * 4
+              : 0,
+            dailyCoverage: policyData?.coverage_per_day ?? 0,
+            maxWeeklyPayout:
+              policyData?.coverage_cap ??
+              (policyData?.coverage_per_day ? policyData.coverage_per_day * 3 : 0),
+
+            totalPaid: totalPaid,
+            totalReceived: totalReceivedDynamic,
+            weeksActive: weeksActive,
             nextDeductionDate: STATIC_PREMIUM.nextDeductionDate,
             upiId: `${worker.name?.split(" ")[0]?.toLowerCase()}@upi`,
-            savingsRatio: STATIC_PREMIUM.savingsRatio,
+            savingsRatio: savingsRatio,
+            recentPayments: recentPayments,
           }
-          : { ...STATIC_PREMIUM, upiId: `${worker.name?.split(" ")[0]?.toLowerCase()}@upi` },
         });
       } catch (err) {
         setError(err.message);
