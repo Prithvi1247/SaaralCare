@@ -354,6 +354,7 @@ export default function DashboardPage() {
         }
 
         const workerCardData = {
+            id: worker.id, 
           name:        worker.name,
           phone:       worker.phone,
           zone:        worker.zone,
@@ -456,7 +457,7 @@ export default function DashboardPage() {
     });
 
     const order = await res.json();
-
+    const currentWorkerId = workerData?.worker?.id;
     // 2. Open Razorpay
     const options = {
       key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
@@ -478,7 +479,7 @@ export default function DashboardPage() {
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature,
-              worker_id: workerData?.worker?.id,
+              worker_id: currentWorkerId,
               amount: amount,
             }),
           });
