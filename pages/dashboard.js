@@ -1,11 +1,13 @@
 // pages/dashboard.js — Worker dashboard with language support
-// NEW: Added plan lifecycle, insurance UI, payout labeling, and i18n support
+// FIXED: data keys, status normalization, and post-payment state synchronization
 
 import { useState, useEffect } from "react";
 import Head from "next/head";
 import Link from "next/link";
-import dynamic from "next/dynamic";
-import { Shield, Bell, LogOut, RefreshCw, CloudRain, CheckCircle2, AlertCircle, Clock, Calendar, Globe } from "lucide-react";
+import { 
+  Shield, Bell, LogOut, RefreshCw, CloudRain, 
+  CheckCircle2, AlertCircle, Clock, Calendar, Globe 
+} from "lucide-react";
 
 import WorkerZoneCard       from "@/components/dashboard/WorkerZoneCard";
 import RainfallStationCard  from "@/components/dashboard/RainfallStationCard";
@@ -14,9 +16,7 @@ import PremiumCard          from "@/components/dashboard/PremiumCard";
 import ClaimHistory         from "@/components/dashboard/ClaimHistory";
 import { supabase }         from "@/lib/supabaseClient";
 
-// Leaflet must load client-side only
-
-// NEW: Translation dictionary
+// ── Translation dictionary ───────────────────────────────────────────────────
 const T = {
   en: {
     goodMorning: "Good morning",
@@ -151,121 +151,48 @@ const STATIC_PREMIUM = {
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
-/** NEW: Translation helper */
 const t = (key, lang) => T[lang]?.[key] || key;
 
-/** Format a Supabase timestamp into "Month YYYY" */
 function formatMonthYear(isoString) {
   if (!isoString) return "—";
-  return new Date(isoString).toLocaleDateString("en-IN", {
-    month: "long", year: "numeric",
-  });
+  return new Date(isoString).toLocaleDateString("en-IN", { month: "long", year: "numeric" });
 }
 
-/** NEW: Get plan status and dates from active_plans data */
-function getPlanStatus(activePlan) {
-  if (!activePlan?.activation_time) {
-    return { status: "none", label: "No Active Coverage", daysUntilStart: null, startDate: null, endDate: null, color: "slate" };
-  }
-
-  const activation = new Date(activePlan.activation_time);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  activation.setHours(0, 0, 0, 0);
-
-  // Calculate 7-day coverage period
-  const startDate = new Date(activation);
-  const endDate = new Date(activation);
-  endDate.setDate(endDate.getDate() + 7);
-  endDate.setHours(0, 0, 0, 0);
-
-  // Coverage hasn't started yet (more than 7 days in future)
-  if (today < activation) {
-    const daysUntil = Math.ceil((activation - today) / (1000 * 60 * 60 * 24));
-    return { 
-      status: "activating", 
-      label: `Activating (starts in ${daysUntil} day${daysUntil !== 1 ? 's' : ''})`,
-      daysUntilStart: daysUntil,
-      startDate,
-      endDate,
-      color: "amber"
-    };
-  }
-
-  // Coverage is active (between activation and activation + 7 days)
-  if (today >= activation && today <= endDate) {
-    return { 
-      status: "active", 
-      label: "Coverage Active",
-      daysUntilStart: 0,
-      startDate,
-      endDate,
-      color: "emerald"
-    };
-  }
-
-  // Coverage has expired
-  return { 
-    status: "expired", 
-    label: "Expired",
-    daysUntilStart: null,
-    startDate,
-    endDate,
-    color: "red"
-  };
-}
-
-/** NEW: Format date range for display */
 function formatDateRange(startDate, endDate) {
   if (!startDate || !endDate) return "—";
   const formatOpts = { month: "short", day: "numeric" };
-  const start = startDate.toLocaleDateString("en-IN", formatOpts);
-  const end = endDate.toLocaleDateString("en-IN", formatOpts);
-  return `${start} – ${end}`;
+  return `${startDate.toLocaleDateString("en-IN", formatOpts)} – ${endDate.toLocaleDateString("en-IN", formatOpts)}`;
+}
+
+function getTimeOfDay() {
+  const h = new Date().getHours();
+  if (h < 12) return "morning";
+  if (h < 17) return "afternoon";
+  return "evening";
 }
 
 // ── Page component ────────────────────────────────────────────────────────────
 export default function DashboardPage() {
-  const [loading, setLoading]     = useState(true);
-  const [error, setError]         = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [workerData, setWorkerData] = useState(null);
   const [policy, setPolicy] = useState(null);
 
-  // NEW: Language state
   const [lang, setLang] = useState(() => {
     if (typeof window === "undefined") return "en";
     return sessionStorage.getItem("sc_lang") || "en";
   });
 
-  // NEW: Plan lifecycle state
-  const [plan, setPlan] = useState(() => {
-    if (typeof window === "undefined") return { paymentDate: null };
-    const stored = sessionStorage.getItem("sc_plan");
-    return stored ? JSON.parse(stored) : { paymentDate: null };
-  });
-
-  // NEW: Persist language
   useEffect(() => {
     if (typeof window !== "undefined") {
       sessionStorage.setItem("sc_lang", lang);
     }
   }, [lang]);
 
-  // NEW: Persist plan state
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      sessionStorage.setItem("sc_plan", JSON.stringify(plan));
-    }
-  }, [plan]);
-
   useEffect(() => {
     async function loadDashboard() {
       try {
-        const phone = typeof window !== "undefined"
-          ? sessionStorage.getItem("gs_worker_phone")
-          : null;
-
+        const phone = typeof window !== "undefined" ? sessionStorage.getItem("gs_worker_phone") : null;
         if (!phone) {
           window.location.href = "/login";
           return;
@@ -273,43 +200,23 @@ export default function DashboardPage() {
 
         const { data: worker, error: wErr } = await supabase
           .from("workers")
-          .select("id, name, phone, platform, zone, latitude, longitude, station_id, avg_daily_income, created_at")
+          .select("id, name, phone, platform, zone, latitude, longitude, station_id, avg_daily_income, created_at, plan_status")
           .eq("phone", phone)
           .maybeSingle();
 
-        if (wErr)    throw new Error(wErr.message);
-        if (!worker) throw new Error("Worker record not found. Please complete onboarding.");
-        // Fetch policy data from Supabase
-        const { data: policyData, error: policyError } = await supabase
-        .from("policy_calculation")
-        .select("*")
-        .eq("worker_id", worker.id)
-        .single();
-       
+        if (wErr) throw new Error(wErr.message);
+        if (!worker) throw new Error("Worker record not found.");
 
-        if (!policyError) {
-          setPolicy(policyData);
-        }
-
-        const { data: payments, error: paymentsError } = await supabase
-        .from("premium_payments")
-        .select("*")
-        .eq("worker_id", worker.id);
-
-        if (paymentsError) {
-          console.error("Payments fetch error:", paymentsError);
-        }
-
-        const { data: payouts, error: payoutError } = await supabase
-          .from("coverage_payout")
+        const { data: policyData } = await supabase
+          .from("policy_calculation")
           .select("*")
-          .eq("worker_id", worker.id);
-        if (payoutError) {
-          console.error("Payout fetch error:", payoutError);
-        }
+          .eq("worker_id", worker.id)
+          .single();
 
-        console.log("Worker ID:", worker.id);
-        console.log("Payouts from DB:", payouts);
+        if (policyData) setPolicy(policyData);
+
+        const { data: payments } = await supabase.from("premium_payments").select("*").eq("worker_id", worker.id);
+        const { data: payouts } = await supabase.from("coverage_payout").select("*").eq("worker_id", worker.id);
 
         const formattedPayouts = payouts
           ?.sort((a, b) => new Date(b.payout_time) - new Date(a.payout_time))
@@ -318,103 +225,62 @@ export default function DashboardPage() {
             type: p.payout_amount >= 400 ? "full" : "partial",
           })) || [];
 
-        const totalPaid =
-          payments?.reduce((sum, p) => sum + (p.premium_amount || 0), 0) || 0;
-        const weeksActive = payments?.length || 0;  
+        const totalPaid = payments?.reduce((sum, p) => sum + (p.premium_amount || 0), 0) || 0;
+        const totalReceivedDynamic = payouts?.reduce((sum, p) => sum + (p.payout_amount || 0), 0) || 0;
+        const savingsRatio = totalPaid > 0 ? (totalReceivedDynamic / totalPaid).toFixed(1) : 0;
 
-        const totalReceivedDynamic =
-          payouts?.reduce((sum, p) => sum + (p.payout_amount || 0), 0) || 0;
-
-        const savingsRatio = 
-          totalPaid > 0
-            ? (totalReceivedDynamic / totalPaid).toFixed(1)
-            : 0;
-            
         const recentPayments = payments
           ?.sort((a, b) => new Date(b.transaction_time) - new Date(a.transaction_time))
           .map((p) => ({
-            date: new Date(p.transaction_time).toLocaleDateString("en-IN", {
-              month: "short",
-              day: "numeric",
-            }),
+            date: new Date(p.transaction_time).toLocaleDateString("en-IN", { month: "short", day: "numeric" }),
             amount: p.premium_amount,
             status: "paid",
           })) || [];
 
-        let stationRow = null;
-        if (worker.station_id) {
-          const { data: st, error: stErr } = await supabase
-            .from("stations")
-            .select("id, station_name, district, latitude, longitude")
-            .eq("id", worker.station_id)
-            .maybeSingle();
-
-          if (stErr) throw new Error(stErr.message);
-          stationRow = st;
-        }
-
+        // FIX 1: Corrected key name to 'plan_status' to match derivation
         const workerCardData = {
-            id: worker.id, 
-          name:        worker.name,
-          phone:       worker.phone,
-          zone:        worker.zone,
-          platform:    worker.platform,
-          vehicle:     "scooter",
-          status:      "active",
+          id: worker.id,
+          name: worker.name,
+          phone: worker.phone,
+          zone: worker.zone,
+          platform: worker.platform,
+          vehicle: "scooter",
+          plan_status: worker.plan_status, // Single source of truth
           memberSince: formatMonthYear(worker.created_at),
         };
 
-        const stationCardData = {
-          stationId:   stationRow?.id       ?? worker.station_id ?? "—",
-          stationName: stationRow?.station_name ?? stationRow?.district ?? "Mapped Station",
-          distance:    "—",
-          lastReading: 0,
-          threshold:   15,
-          updatedAt:   "—",
-          trend:       "stable",
-          alertActive: false,
-        };
-
-        // 🔥 Fetch active plan from database
-        let activePlan = null;
-        const { data: activePlanData } = await supabase
-          .from("active_plans")
-          .select("*")
-          .eq("worker_id", worker.id)
-          .order("activation_time", { ascending: false })
-          .limit(1)
-          .single();
-        
-        if (activePlanData) {
-          activePlan = activePlanData;
+        let stationRow = null;
+        if (worker.station_id) {
+          const { data: st } = await supabase.from("stations").select("*").eq("id", worker.station_id).maybeSingle();
+          stationRow = st;
         }
 
         setWorkerData({
-          worker:   workerCardData,
-          station:  stationCardData,
-          activePlan: activePlan,
-          coverage:
-            payouts && payouts.length > 0
-              ? {
-                  ...STATIC_COVERAGE,
-                  payouts: formattedPayouts,
-                  totalPayout: totalReceivedDynamic,
-                  maxPayout: totalReceivedDynamic,
-                }
-              : STATIC_COVERAGE,
+          worker: workerCardData,
+          station: {
+            stationId: stationRow?.id ?? worker.station_id ?? "—",
+            stationName: stationRow?.station_name ?? stationRow?.district ?? "Mapped Station",
+            distance: "—",
+            lastReading: 0,
+            threshold: 15,
+            updatedAt: "—",
+            trend: "stable",
+            alertActive: false,
+          },
+          coverage: {
+            ...STATIC_COVERAGE,
+            payouts: formattedPayouts,
+            totalPayout: totalReceivedDynamic,
+            maxPayout: totalReceivedDynamic,
+          },
           premium: {
             weeklyPremium: policyData?.premium_weekly ?? 0,
-            monthlyPremium: policyData
-              ? policyData.premium_weekly * 4
-              : 0,
+            monthlyPremium: policyData ? policyData.premium_weekly * 4 : 0,
             dailyCoverage: policyData?.coverage_per_day ?? 0,
-            maxWeeklyPayout:
-              policyData?.coverage_cap ??
-              (policyData?.coverage_per_day ? policyData.coverage_per_day * 3 : 0),
-
+            maxWeeklyPayout: policyData?.coverage_cap ?? (policyData?.coverage_per_day * 3 || 0),
             totalPaid: totalPaid,
             totalReceived: totalReceivedDynamic,
-            weeksActive: weeksActive,
+            weeksActive: payments?.length || 0,
             nextDeductionDate: STATIC_PREMIUM.nextDeductionDate,
             upiId: `${worker.name?.split(" ")[0]?.toLowerCase()}@upi`,
             savingsRatio: savingsRatio,
@@ -427,123 +293,93 @@ export default function DashboardPage() {
         setLoading(false);
       }
     }
-
     loadDashboard();
   }, []);
 
-  function handleLogout() {
-    if (typeof window !== "undefined") {
-      sessionStorage.clear();
-      window.location.href = "/login";
-    }
-  }
-
   async function handleBuyPlan() {
-  try {
-    if (!policy) {
-      alert("Policy not loaded");
-      return;
-    }
+    try {
+      if (!policy) return alert("Policy not loaded");
+      const res = await fetch("/api/create-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: policy.premium_weekly }),
+      });
+      const order = await res.json();
 
-    const amount = policy.premium_weekly;
-
-    // 1. Create order from backend
-    const res = await fetch("/api/create-order", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ amount }),
-    });
-
-    const order = await res.json();
-    const currentWorkerId = workerData?.worker?.id;
-    // 2. Open Razorpay
-    const options = {
-      key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-      amount: order.amount,
-      currency: "INR",
-      name: "SaaralCare AI",
-      description: "Weekly Insurance Plan",
-      order_id: order.id,
-
-      handler: async (response) => {
-        try {
-          // 3. Verify payment with backend
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        amount: order.amount,
+        currency: "INR",
+        name: "SaaralCare AI",
+        order_id: order.id,
+        handler: async (response) => {
           const verifyRes = await fetch("/api/verify-payment", {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature,
-              worker_id: currentWorkerId,
-              amount: amount,
+              worker_id: workerData.worker.id,
+              amount: policy.premium_weekly,
             }),
           });
-
           const data = await verifyRes.json();
 
           if (data.success) {
             alert("Payment Successful!");
-            
-            // ✅ Refetch worker data to update active_plans
+            // FIX 3: Re-fetch and sync state immediately
             const phone = sessionStorage.getItem("gs_worker_phone");
             if (phone) {
               const { data: updatedWorker } = await supabase
                 .from("workers")
-                .select("*")
+                .select("plan_status")
                 .eq("phone", phone)
                 .maybeSingle();
-              
+
               if (updatedWorker) {
-                // Fetch active plan
-                const { data: activePlanData } = await supabase
-                  .from("active_plans")
-                  .select("*")
-                  .eq("worker_id", updatedWorker.id)
-                  .order("activation_time", { ascending: false })
-                  .limit(1)
-                  .single();
-                
-                // Update workerData with new plan info
                 setWorkerData(prev => ({
                   ...prev,
-                  activePlan: activePlanData || null
+                  worker: { ...prev.worker, plan_status: updatedWorker.plan_status }
                 }));
               }
             }
-          } else {
-            alert("Payment verification failed");
           }
-        } catch (err) {
-          console.error("Payment handler error:", err);
-          alert("Something went wrong");
-        }
-      },
-    };
-
-    const rzp = new window.Razorpay(options);
-    rzp.open();
-
-  } catch (err) {
-    console.error(err);
-    alert("Payment failed");
+        },
+      };
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } catch (err) {
+      alert("Payment failed");
+    }
   }
-}
 
-  // Fetch plan status from database, not frontend state
-  const planStatus = getPlanStatus(workerData?.activePlan || null);
+  function handleLogout() {
+    sessionStorage.clear();
+    window.location.href = "/login";
+  }
+
+  // FIX 2: Single source of truth logic
+  const rawStatus = workerData?.worker?.plan_status;
+  const status = (rawStatus === "active" || rawStatus === "activating") ? rawStatus : "none";
+
+  const planStatus = {
+    status,
+    label: status === "active" ? "Coverage Active" : status === "activating" ? "Activating..." : "No Active Coverage",
+    color: status === "active" ? "emerald" : status === "activating" ? "amber" : "slate",
+  };
+
   const statusColors = {
     active: { bg: "bg-emerald-500/15", border: "border-emerald-500/30", badge: "bg-emerald-500/20 text-emerald-300", icon: CheckCircle2 },
     activating: { bg: "bg-amber-500/15", border: "border-amber-500/30", badge: "bg-amber-500/20 text-amber-300", icon: Clock },
-    expired: { bg: "bg-red-500/15", border: "border-red-500/30", badge: "bg-red-500/20 text-red-300", icon: AlertCircle },
     none: { bg: "bg-slate-500/15", border: "border-slate-500/30", badge: "bg-slate-500/20 text-slate-300", icon: AlertCircle },
   };
-  const colors = statusColors[planStatus.status];
+
+  const colors = statusColors[planStatus.status] || statusColors.none;
   const StatusIcon = colors.icon;
+
+  if (loading) return <div className="min-h-screen bg-navy-950 p-8"><DashboardSkeleton /></div>;
+  if (error) return <div className="min-h-screen bg-navy-950 p-8"><ErrorState message={error} onLogout={handleLogout} /></div>;
 
   return (
     <>
@@ -560,39 +396,20 @@ export default function DashboardPage() {
                 <Shield className="w-4 h-4 text-white" />
               </div>
               <span className="font-display font-semibold text-white text-lg">
-                Saaral<span className="text-rain-400">Care</span>
-                <span className="text-amber-400 ml-0.5">AI</span>
+                Saaral<span className="text-rain-400">Care</span><span className="text-amber-400 ml-0.5">AI</span>
               </span>
             </Link>
 
-            {planStatus.status === "active" && (
-              <div className="hidden sm:flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 rounded-full px-4 py-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="text-emerald-300 text-xs font-medium">
-                  {t("insuranceCoverage", lang)} · {formatDateRange(planStatus.startDate, planStatus.endDate)}
-                </span>
-              </div>
-            )}
-
             <div className="flex items-center gap-3">
-              {/* NEW: Language toggle */}
-              <button
-                onClick={() => setLang(lang === "en" ? "hi" : "en")}
-                className="flex items-center gap-1.5 text-slate-400 hover:text-white text-xs transition-colors"
-                title="Toggle language"
-              >
+              <button onClick={() => setLang(lang === "en" ? "hi" : "en")} className="flex items-center gap-1.5 text-slate-400 hover:text-white text-xs">
                 <Globe className="w-4 h-4" />
                 <span>{lang === "en" ? "हिन्दी" : "English"}</span>
               </button>
-
-              <button className="relative w-9 h-9 rounded-lg bg-navy-800 hover:bg-navy-700 flex items-center justify-center transition-colors">
+              <button className="relative w-9 h-9 rounded-lg bg-navy-800 flex items-center justify-center">
                 <Bell className="w-4 h-4 text-slate-400" />
                 <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-amber-400" />
               </button>
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-1.5 text-slate-400 hover:text-white text-sm transition-colors"
-              >
+              <button onClick={handleLogout} className="flex items-center gap-1.5 text-slate-400 hover:text-white text-sm">
                 <LogOut className="w-4 h-4" />
                 <span className="hidden sm:inline">{t("logout", lang)}</span>
               </button>
@@ -601,171 +418,74 @@ export default function DashboardPage() {
         </header>
 
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {loading ? (
-            <DashboardSkeleton />
-          ) : error ? (
-            <ErrorState message={error} onLogout={handleLogout} />
-          ) : (
-            <>
-              <div className="mb-8 animate-fade-up opacity-0">
-                <h1 className="font-display text-3xl font-bold text-white">
-                  {t("good" + getTimeOfDay().charAt(0).toUpperCase() + getTimeOfDay().slice(1), lang)}, {workerData.worker.name.split(" ")[0]} 👋
-                </h1>
-                <p className="text-slate-400 text-sm mt-1">
-                  {t("coverageStatus", lang)}: <span className={`font-medium ${planStatus.status === "active" ? "text-emerald-400" : "text-amber-400"}`}></span>
-                </p>
-              </div>
+          <div className="mb-8">
+            <h1 className="font-display text-3xl font-bold text-white">
+              {t("good" + getTimeOfDay().charAt(0).toUpperCase() + getTimeOfDay().slice(1), lang)}, {workerData.worker.name.split(" ")[0]} 👋
+            </h1>
+          </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
-                <div className="animate-fade-up opacity-0 delay-100">
-                  <WorkerZoneCard data={workerData.worker} lang={lang} t={t} />
-                </div>
-                <div className="animate-fade-up opacity-0 delay-200">
-                  <RainfallStationCard data={workerData.station} lang={lang} t={t} />
-                </div>
-                <div className="animate-fade-up opacity-0 delay-300">
-                  <WeeklyCoverageCard data={workerData.coverage} lang={lang} t={t} />
-                </div>
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
+            <WorkerZoneCard data={workerData.worker} lang={lang} t={t} />
+            <RainfallStationCard data={workerData.station} lang={lang} t={t} />
+            <WeeklyCoverageCard data={workerData.coverage} lang={lang} t={t} />
+          </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-5">
-                <div className="lg:col-span-2 animate-fade-up opacity-0 delay-400">
-                  <div className={`glass-card gradient-border rounded-2xl p-6 border ${colors.border}`}>
-                    <div className="flex items-start justify-between mb-6">
-                      <div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <StatusIcon className="w-5 h-5" style={{ color: planStatus.color === "emerald" ? "#34d399" : planStatus.color === "amber" ? "#fbbf24" : planStatus.color === "red" ? "#f87171" : "#cbd5e1" }} />
-                          <h3 className="font-display text-xl font-bold text-white">{t("insuranceCoverage", lang)}</h3>
-                        </div>
-                        <p className={`text-sm ${colors.badge} px-2.5 py-1 rounded-full inline-block`}>{planStatus.label}</p>
-                      </div>
-                      <Calendar className="w-5 h-5 text-slate-500" />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-5">
+            <div className="lg:col-span-2">
+              <div className={`glass-card rounded-2xl p-6 border ${colors.border} ${colors.bg}`}>
+                <div className="flex items-start justify-between mb-6">
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <StatusIcon className="w-5 h-5" style={{ color: planStatus.color === "emerald" ? "#34d399" : "#fbbf24" }} />
+                      <h3 className="font-display text-xl font-bold text-white">{t("insuranceCoverage", lang)}</h3>
                     </div>
-
-                    <div className={`rounded-xl p-5 mb-6 ${colors.bg}`}>
-                      {planStatus.status === "none" ? (
-                        <p className="text-slate-400 text-sm">{t("noActiveCoverage", lang)}</p>
-                      ) : (
-                        <>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <p className="text-slate-400 text-xs uppercase tracking-wide mb-1">{t("coveragePeriod", lang)}</p>
-                              <p className="text-white font-semibold">{formatDateRange(planStatus.startDate, planStatus.endDate)}</p>
-                            </div>
-                            <div>
-                              <p className="text-slate-400 text-xs uppercase tracking-wide mb-1">{t("dailyBenefit", lang)}</p>
-                              <p className="text-white font-semibold">₹{workerData.premium.dailyCoverage}</p>
-                            </div>
-                          </div>
-                          <div className="mt-4 pt-4 border-t border-slate-600/40">
-                            <p className="text-slate-400 text-xs mb-1">{t("rainTrigger", lang)}</p>
-                            <p className="text-slate-300 text-sm">{t("fullPayoutWhen", lang)} | {t("partialPayoutWhen", lang)}</p>
-                          </div>
-                        </>
-                      )}
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4 mb-6">
-                      <div className="bg-navy-800/50 rounded-lg p-4">
-                        <p className="text-slate-400 text-xs uppercase tracking-wide mb-1">{t("weeklyPremium", lang)}</p>
-                        <p className="font-display text-2xl font-bold text-rain-400">₹{workerData.premium.weeklyPremium}</p>
-                      </div>
-                      <div className="bg-navy-800/50 rounded-lg p-4">
-                        <p className="text-slate-400 text-xs uppercase tracking-wide mb-1">{t("coveragePerDay", lang)}</p>
-                        <p className="font-display text-2xl font-bold text-rain-400">₹{workerData.premium.dailyCoverage}</p>
-                      </div>
-                    </div>
-
-                    <div className="bg-navy-800/30 rounded-lg p-4 mb-6 border border-navy-700">
-                      <p className="text-slate-400 text-xs uppercase tracking-wide mb-3 font-medium">{t("yourCoverage", lang)}</p>
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-slate-400">{t("monthlyPremium", lang)}</span>
-                          <span className="text-white font-semibold">₹{workerData.premium.monthlyPremium}</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-slate-400">{t("maxWeeklyPayout", lang)}</span>
-                          <span className="text-white font-semibold">₹{workerData.premium.maxWeeklyPayout}</span>
-                        </div>
-                        <div className="flex justify-between text-xs text-slate-500 pt-2 border-t border-navy-700">
-                          <span>{t("basedOnZone", lang)}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={handleBuyPlan}
-                      disabled={planStatus.status === "activating"}
-                      className={`w-full py-2.5 px-4 rounded-lg font-medium text-sm transition-all ${
-                        planStatus.status === "activating"
-                          ? "bg-slate-700/50 text-slate-400 cursor-not-allowed"
-                          : planStatus.status === "active"
-                          ? "bg-rain-500 hover:bg-rain-600 text-white"
-                          : "bg-emerald-500 hover:bg-emerald-600 text-white"
-                      }`}
-                    >
-                      {planStatus.status === "none" ? t("buyPlan", lang) : planStatus.status === "activating" ? t("activating", lang) : t("renewPlan", lang)}
-                    </button>
+                    <p className={`text-sm ${colors.badge} px-2.5 py-1 rounded-full inline-block`}>{planStatus.label}</p>
                   </div>
                 </div>
 
-                <div className="animate-fade-up opacity-0 delay-500">
-                  <PremiumCard data={workerData.premium} lang={lang} t={t} />
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                  <div className="bg-navy-800/50 rounded-lg p-4">
+                    <p className="text-slate-400 text-xs uppercase mb-1">{t("weeklyPremium", lang)}</p>
+                    <p className="font-display text-2xl font-bold text-rain-400">₹{workerData.premium.weeklyPremium}</p>
+                  </div>
+                  <div className="bg-navy-800/50 rounded-lg p-4">
+                    <p className="text-slate-400 text-xs uppercase mb-1">{t("coveragePerDay", lang)}</p>
+                    <p className="font-display text-2xl font-bold text-rain-400">₹{workerData.premium.dailyCoverage}</p>
+                  </div>
                 </div>
-              </div>
 
-              
-
-              <div className="animate-fade-up opacity-0 delay-700">
-                <ClaimHistory payouts={workerData.coverage.payouts} lang={lang} t={t} />
+                <button
+                  onClick={handleBuyPlan}
+                  disabled={planStatus.status === "activating"}
+                  className={`w-full py-3 rounded-lg font-bold transition-all ${
+                    planStatus.status === "activating" ? "bg-slate-700 text-slate-400 cursor-not-allowed" : "bg-emerald-500 hover:bg-emerald-600 text-white"
+                  }`}
+                >
+                  {planStatus.status === "none" ? t("buyPlan", lang) : planStatus.status === "activating" ? t("activating", lang) : t("renewPlan", lang)}
+                </button>
               </div>
-            </>
-          )}
+            </div>
+            <PremiumCard data={workerData.premium} lang={lang} t={t} />
+          </div>
+
+          <ClaimHistory payouts={workerData.coverage.payouts} lang={lang} t={t} />
         </main>
       </div>
     </>
   );
 }
 
-function getTimeOfDay() {
-  const h = new Date().getHours();
-  if (h < 12) return "morning";
-  if (h < 17) return "afternoon";
-  return "evening";
-}
-
 function ErrorState({ message, onLogout }) {
   return (
     <div className="flex flex-col items-center justify-center py-24 text-center">
-      <div className="w-14 h-14 rounded-2xl bg-red-500/10 flex items-center justify-center mb-5">
-        <AlertCircle className="w-6 h-6 text-red-400" />
-      </div>
-      <h2 className="font-display text-xl font-bold text-white mb-2">
-        Could not load dashboard
-      </h2>
-      <p className="text-slate-400 text-sm max-w-xs mb-6">{message}</p>
-      <button onClick={onLogout} className="btn-primary">
-        Back to Login
-      </button>
+      <AlertCircle className="w-12 h-12 text-red-400 mb-4" />
+      <h2 className="text-xl font-bold text-white mb-2">Error</h2>
+      <p className="text-slate-400 mb-6">{message}</p>
+      <button onClick={onLogout} className="bg-rain-500 text-white px-6 py-2 rounded-lg">Back to Login</button>
     </div>
   );
 }
 
 function DashboardSkeleton() {
-  return (
-    <div className="space-y-5 animate-pulse">
-      <div className="h-8 w-64 bg-navy-800 rounded-lg" />
-      <div className="h-4 w-48 bg-navy-800 rounded-lg" />
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-4">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="h-56 bg-navy-800 rounded-2xl" />
-        ))}
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        <div className="lg:col-span-2 h-96 bg-navy-800 rounded-2xl" />
-        <div className="h-96 bg-navy-800 rounded-2xl" />
-      </div>
-      <div className="h-80 bg-navy-800 rounded-2xl" />
-    </div>
-  );
+  return <div className="space-y-6 animate-pulse"><div className="h-10 w-48 bg-navy-800 rounded"></div><div className="grid grid-cols-3 gap-6"><div className="h-48 bg-navy-800 rounded-xl"></div><div className="h-48 bg-navy-800 rounded-xl"></div><div className="h-48 bg-navy-800 rounded-xl"></div></div></div>;
 }
