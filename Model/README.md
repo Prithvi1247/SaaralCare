@@ -226,32 +226,8 @@ Example:
   }
 }
 
-## Output Files
 
-| File | Description |
-|------|-------------|
-| `weather_risk_model.joblib` | Trained machine learning model |
-| `station_features.csv` | Aggregated station feature dataset |
-| `station_risk_summary.csv` | Station statistics and predicted risk |
-| `risk_probabilities.csv` | Probability predictions for each station |
 
----
 
-## How to Run
 
-### 1. Clone the repository
 
-```bash
-git clone https://github.com/ss120406/weather-risk-predictor.git
-cd weather-risk-predictor
-2. Create a virtual environment
-python3 -m venv venv
-source venv/bin/activate
-Windows:
-venv\Scripts\activate
-3. Install dependencies
-pip install pandas numpy scipy scikit-learn joblib
-4. Place the dataset
-Copy the rainfall dataset into:
-data/rainfall_tel_hr_tamil_nadu_sw_gw_tn_2021_2025.csv
-5. Run the pipeline
