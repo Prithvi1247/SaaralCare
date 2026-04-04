@@ -136,3 +136,66 @@ body {
   @apply inline-flex items-center gap-1.5 bg-slate-500/10 text-slate-400 
          border border-slate-500/20 text-xs font-medium px-2.5 py-1 rounded-full;
 }
+.reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity 0.55s ease, transform 0.55s ease;
+}
+
+/* Triggered by IntersectionObserver in useScrollReveal.js */
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+/* ─── NEW LANDING PAGE ANIMATIONS ─────────────────────────────────────── */
+
+@keyframes float-cloud {
+  0%, 100% { transform: translateX(0) translateY(0); }
+  33% { transform: translateX(30px) translateY(-10px); }
+  66% { transform: translateX(-20px) translateY(8px); }
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes scan-line {
+  0% { top: 0; }
+  100% { top: 100%; }
+}
+
+@keyframes flow-ping {
+  0% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(2.5); }
+}
+
+/* Scroll reveal animations */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Glass morphism card */
+.glass-card {
+  background: rgba(15, 29, 48, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(22, 40, 64, 0.8);
+}
+
+/* Smooth hover effects */
+.card-hover-glow:hover {
+  border-color: rgba(56, 189, 248, 0.3);
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.1);
+}

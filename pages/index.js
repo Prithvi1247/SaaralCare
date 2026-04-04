@@ -1,97 +1,141 @@
-// pages/index.js — Landing page
+import { useEffect, useState } from "react";
 import Head from "next/head";
+import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import CursorEffect from "@/components/layout/Cursoreffect";
 import Hero from "@/components/landing/Hero";
-import Features from "@/components/landing/Features";
-import HowItWorks from "@/components/landing/HowItWorks";
+import Coresystem from "@/components/landing/Coresystem";
+import Explainability from "@/components/landing/Explainability";
+import Robustness from "@/components/landing/Robustness";
+import Stressscenario from "@/components/landing/Stressscenario";
+import BasisRisk from "@/components/landing/BasisRisk";
+import TechStack from "@/components/landing/TechStack";
+import Testimonials from "@/components/landing/Testimonials";
 
-export default function LandingPage() {
+export default function HomePage() {
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 40);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
     <>
       <Head>
-        <title>SaaralCare AI — Rain Shouldn't Drain Your Income</title>
-       
-        {/* <link rel="shortcut icon" href="/favicon.ico" /> */}
-        <meta
-          name="description"
-          content="Parametric income protection for delivery workers. Automatic payouts when heavy rain cuts your earnings."
-        />
+        <title>SaaralCare AI — Zero-Touch Rainfall Insurance for Gig Workers</title>
+        <meta name="description" content="Parametric income protection for delivery workers. Automated payouts triggered by rainfall. Zero claims, no verification, no waiting." />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <Navbar transparent />
-      <main>
+      <div className="min-h-screen bg-navy-950 overflow-x-hidden">
+        <CursorEffect />
+        <Navbar transparent={!scrolled} />
+
+        {/* ========== HERO ========== */}
         <Hero />
-        <Features />
-        <HowItWorks />
 
-        {/* Testimonials */}
-        <section className="py-24 px-4 bg-navy-950">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-14">
-              <p className="text-rain-400 text-sm font-medium tracking-widest uppercase mb-3">
-                Real Stories
-              </p>
-              <h2 className="font-display text-4xl sm:text-5xl font-bold text-white">
-                Delivery workers love
-                <br />
-                <span className="italic text-slate-300">SaaralCare</span>
-              </h2>
-            </div>
+        {/* ========== CORE SYSTEM ========== */}
+        <Coresystem />
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {[
-                {
-                  name: "Arjun S.",
-                  zone: "Andheri, Mumbai",
-                  platform: "Zomato",
-                  quote:
-                    "During the July floods I got ₹800 in my account by 4pm. I didn't even have to call anyone. It just happened.",
-                  emoji: "🛵",
-                },
-                {
-                  name: "Priya M.",
-                  zone: "Bandra, Mumbai",
-                  platform: "Blinkit",
-                  quote:
-                    "₹29 a week is less than a cup of chai. But when it rains heavy I know I'm not losing a full day's income.",
-                  emoji: "🚲",
-                },
-                {
-                  name: "Ravi K.",
-                  zone: "Thane",
-                  platform: "Swiggy",
-                  quote:
-                    "Signing up took 2 minutes on my phone. Third week in, I got my first payout. These people are serious.",
-                  emoji: "🏍️",
-                },
-              ].map((t) => (
-                <div
-                  key={t.name}
-                  className="glass-card gradient-border rounded-2xl p-6 flex flex-col"
-                >
-                  <p className="text-slate-300 text-sm leading-relaxed flex-1 mb-5 italic">
-                    "{t.quote}"
-                  </p>
-                  <div className="flex items-center gap-3 pt-4 border-t border-navy-700">
-                    <div className="w-10 h-10 rounded-full bg-navy-700 flex items-center justify-center text-xl">
-                      {t.emoji}
-                    </div>
-                    <div>
-                      <p className="text-white font-semibold text-sm">{t.name}</p>
-                      <p className="text-slate-400 text-xs">
-                        {t.platform} · {t.zone}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
+        {/* ========== EXPLAINABILITY ========== */}
+        <Explainability />
+
+        {/* ========== ROBUSTNESS ========== */}
+        <Robustness />
+
+        {/* ========== STRESS SCENARIO ========== */}
+        <Stressscenario />
+
+        {/* ========== BASIS RISK ========== */}
+        <BasisRisk />
+
+        {/* ========== TECH STACK ========== */}
+        <TechStack />
+
+        {/* ========== TESTIMONIALS ========== */}
+        <Testimonials />
+
+        {/* ========== FOOTER CTA ========== */}
+        <section className="py-20 bg-navy-950 border-t border-navy-800 relative">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 className="font-display text-4xl md:text-5xl font-bold text-white mb-2">
+              We don't process <span className="text-rain-400">claims</span>
+            </h2>
+            <h2 className="font-display text-4xl md:text-5xl font-bold text-white mb-8">
+              We process <span className="text-rain-400">events</span>
+            </h2>
+            <p className="text-slate-400 text-lg mb-10 max-w-2xl mx-auto leading-relaxed">
+              Parametric income protection for delivery workers — automated payouts triggered by rainfall, zero paperwork required.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link href="/login" className="inline-block px-8 py-4 bg-gradient-to-r from-rain-500 to-rain-600 text-white rounded-2xl font-semibold hover:shadow-lg hover:shadow-rain-500/50 transition-all duration-200">
+                Get Protected in 2 Minutes →
+              </Link>
+              <Link href="/dashboard" className="inline-block px-8 py-4 border border-rain-500/30 text-rain-400 rounded-2xl font-semibold hover:bg-rain-500/10 transition-all duration-200">
+                View Dashboard
+              </Link>
             </div>
           </div>
         </section>
-      </main>
-      <Footer />
+
+        <Footer />
+      </div>
+
+      <style jsx global>{`
+        /* Scroll reveal animations */
+        .reveal {
+          opacity: 0;
+          transform: translateY(20px);
+          transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+        .reveal.visible {
+          opacity: 1;
+          transform: translateY(0);
+        }
+
+        /* Core animations */
+        @keyframes fade-up {
+          from { opacity: 0; transform: translateY(24px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse-glow {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.3); }
+          50% { box-shadow: 0 0 0 8px rgba(56, 189, 248, 0); }
+        }
+
+        @keyframes float-cloud {
+          0%, 100% { transform: translateX(0) translateY(0); }
+          33% { transform: translateX(30px) translateY(-10px); }
+          66% { transform: translateX(-20px) translateY(8px); }
+        }
+
+        @keyframes scan-line {
+          0% { top: 0; }
+          100% { top: 100%; }
+        }
+
+        @keyframes blink {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0; }
+        }
+
+        .cursor-blink {
+          display: inline-block;
+          width: 8px;
+          height: 14px;
+          background: var(--rain-400);
+          margin-left: 2px;
+          vertical-align: middle;
+          animation: blink 1.2s step-end infinite;
+        }
+      `}</style>
     </>
   );
 }

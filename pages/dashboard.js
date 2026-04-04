@@ -1,5 +1,5 @@
 // pages/dashboard.js — Worker dashboard with language support
-// UI/UX Enhancements: Reordered cards for mobile-first gig worker priority (Status & CTA at the top)
+// FIXED: Added yesterday's rainfall fetch and mapped deliveryZone to the station card
 
 import { useState, useEffect } from "react";
 import Head from "next/head";
@@ -78,6 +78,7 @@ const T = {
     endDate: "End Date",
   },
   hi: {
+    // ... (Hindi translations remain unchanged)
     goodMorning: "सुप्रभात",
     goodAfternoon: "शुभ दोपहर",
     goodEvening: "शुभ संध्या",
@@ -224,6 +225,21 @@ export default function DashboardPage() {
           .limit(1)
           .maybeSingle();
 
+        // ── FETCH YESTERDAY'S RAINFALL ──
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayStart = new Date(yesterday.setHours(0, 0, 0, 0)).toISOString();
+        const yesterdayEnd = new Date(yesterday.setHours(23, 59, 59, 999)).toISOString();
+
+        const { data: yesterdayEvents } = await supabase
+          .from("rainfall_events")
+          .select("rainfall_mm")
+          .eq("station_id", worker.station_id)
+          .gte("recorded_at", yesterdayStart)
+          .lte("recorded_at", yesterdayEnd);
+
+        const yesterdayTotalRain = yesterdayEvents?.reduce((sum, event) => sum + (event.rainfall_mm || 0), 0) || 0;
+
         // Calculate dynamic dates and days left
         let paymentStartDate = new Date();
         paymentStartDate.setDate(paymentStartDate.getDate() + 7);
@@ -289,13 +305,13 @@ export default function DashboardPage() {
         setWorkerData({
           worker: workerCardData,
           station: {
+            deliveryZone: worker.zone || "—",       // <--- FIXED: Now mapping the zone
+            yesterdayRainfall: yesterdayTotalRain,  // <--- FIXED: Now passing yesterday's rain
             stationId: stationRow?.id ?? worker.station_id ?? "—",
             stationName: stationRow?.station_name ?? stationRow?.district ?? "Mapped Station",
             distance: "—",
-            lastReading: 0,
             threshold: 15,
-            updatedAt: "—",
-            trend: "stable",
+            updatedAt: "Just now",
             alertActive: false,
           },
           coverage: {

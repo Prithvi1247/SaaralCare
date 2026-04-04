@@ -1,0 +1,17 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   PASTE THIS INTO YOUR globals.css (or styles/globals.css)
+   Required by useScrollReveal hook used across all landing sections.
+──────────────────────────────────────────────────────────────────────────────*/
+
+/* Scroll-reveal base state */
+.reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity 0.55s ease, transform 0.55s ease;
+}
+
+/* Triggered by IntersectionObserver in useScrollReveal.js */
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}

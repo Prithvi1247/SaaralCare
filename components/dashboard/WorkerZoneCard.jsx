@@ -6,18 +6,18 @@ export default function WorkerZoneCard({ data = {}, lang = "en", t = () => "" })
     name = "Rahul Kumar",
     zone = "Andheri West",
     platform = "Zomato",
-    vehicle = "scooter",
+    
     status = "active",
     phone = "+91 98765 43210",
     memberSince = "June 2024",
   } = data;
 
-  const vehicleEmoji = {
-    bicycle: "🚲",
-    scooter: "🛵",
-    motorcycle: "🏍️",
-    cycle_ev: "⚡",
-  }[vehicle] || "🛵";
+  // const vehicleEmoji = {
+  //   bicycle: "🚲",
+  //   scooter: "🛵",
+  //   motorcycle: "🏍️",
+  //   cycle_ev: "⚡",
+  // }[vehicle] || "🛵";
 
   return (
     <div className="glass-card gradient-border rounded-2xl p-6 h-full">
@@ -45,13 +45,13 @@ export default function WorkerZoneCard({ data = {}, lang = "en", t = () => "" })
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <div className="flex items-center gap-3 bg-navy-800/60 rounded-xl px-4 py-3">
-            <span className="text-xl">{vehicleEmoji}</span>
-            <div>
-              <p className="text-slate-400 text-xs">{t("vehicle", lang)}</p>
-              <p className="text-white font-medium text-sm capitalize">{vehicle}</p>
-            </div>
-          </div>
+          {/* <div className="flex items-center gap-3 bg-navy-800/60 rounded-xl px-4 py-3"> */}
+            {/* <span className="text-xl">{vehicleEmoji}</span> */}
+            {/* <div> */}
+              {/* <p className="text-slate-400 text-xs">{t("vehicle", lang)}</p> */}
+              {/* <p className="text-white font-medium text-sm capitalize">{vehicle}</p> */}
+            {/* </div> */}
+          {/* </div> */}
           <div className="flex items-center gap-3 bg-navy-800/60 rounded-xl px-4 py-3">
             <Building2 className="w-4 h-4 text-amber-400 flex-shrink-0" />
             <div>
