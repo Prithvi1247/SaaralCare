@@ -53,13 +53,13 @@ export default function PremiumCard({ data = {}, lang = "en", t = () => "" }) {
       </div>
 
       {/* Next deduction */}
-      <div className="flex items-center justify-between text-sm mb-4">
+      {/* <div className="flex items-center justify-between text-sm mb-4">
         <span className="text-slate-400">{t("nextDeduction", lang)}</span>
         <div className="text-right">
           <p className="text-white font-medium">₹{weeklyPremium} on {nextDeductionDate}</p>
           <p className="text-slate-500 text-xs">{upiId}</p>
         </div>
-      </div>
+      </div> */}
 
       {/* Recent payments */}
       <div>
