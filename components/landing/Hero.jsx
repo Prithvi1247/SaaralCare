@@ -226,7 +226,7 @@ export default function Hero() {
             <div className="grid grid-cols-2 gap-6 pt-8 animate-fade-up opacity-0" style={{ animationDelay: "0.4s", animationFillMode: "forwards" }}>
               {[
                 { val: "12,400+", lbl: "Workers Protected" },
-                { val: "<4 hrs", lbl: "Avg. Payout Time" },
+                { val: "<24 hrs", lbl: "Avg. Payout Time" },
                 { val: "8", lbl: "Cities Active" },
                 { val: "75.5%", lbl: "Loss Ratio" },
               ].map((stat, i) => (

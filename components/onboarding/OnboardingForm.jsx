@@ -346,8 +346,7 @@ export default function OnboardingForm() {
                 ["Name",              form.name],
                 ["Platform",          form.platform],
                 ["Zone",              form.zone],
-                ["Weekly Premium",    "₹29"],
-                ["Max Weekly Payout", "₹800"],
+                
               ].map(([k, v]) => (
                 <div key={k} className="flex justify-between text-sm">
                   <span className="text-slate-400">{k}</span>

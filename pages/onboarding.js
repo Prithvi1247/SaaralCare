@@ -45,7 +45,7 @@ export default function OnboardingPage() {
               </p>
             </div>
 
-            {/* Coverage preview strip */}
+            {/* Coverage preview strip
             <div className="flex items-center justify-center gap-8 mb-10">
               {[
                 { label: "Weekly Premium", value: "₹29" },
@@ -57,7 +57,7 @@ export default function OnboardingPage() {
                   <p className="text-slate-500 text-xs mt-0.5">{s.label}</p>
                 </div>
               ))}
-            </div>
+            </div> */}
 
             {/* Form card */}
             <div className="glass-card rounded-2xl p-8 shadow-2xl shadow-navy-950/50">

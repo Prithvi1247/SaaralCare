@@ -1,24 +1,41 @@
 // components/dashboard/WeeklyCoverageCard.jsx
+// TASK 4: Dynamic week dates and rain days from real Supabase data
 import { ShieldCheck, CalendarDays } from "lucide-react";
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 export default function WeeklyCoverageCard({ data = {}, lang = "en", t = () => "" }) {
+  // Defaults now use dynamic current-week dates computed in dashboard.js
+  const today = new Date();
+  const dayOfWeek = today.getDay();
+  const diffToMon = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+  const monday = new Date(today);
+  monday.setDate(today.getDate() + diffToMon);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  const defaultStart = monday.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+  const defaultEnd = sunday.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+  const nextMon = new Date(sunday);
+  nextMon.setDate(sunday.getDate() + 1);
+  const defaultRenewal = nextMon.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+
   const {
-    weekStart = "Dec 16",
-    weekEnd = "Dec 22",
+    weekStart = defaultStart,
+    weekEnd = defaultEnd,
     coverageStatus = "active",
-    daysWithRain = [1, 3],
-    payouts = [
-      { day: 1, amount: 320 },
-      { day: 3, amount: 480 },
-    ],
-    totalPayout = 800,
-    maxPayout = 800,
-    nextRenewal = "Dec 23",
+    daysWithRain = [],
+    payouts = [],
+    totalPayout = 0,
+    maxPayout = 1125,
+    nextRenewal = defaultRenewal,
   } = data;
 
   const payoutByDay = Object.fromEntries(payouts.map((p) => [p.day, p.amount]));
+
+  // Current week day index (Mon=0..Sun=6) for "today" indicator
+  const todayIdx = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+
+  const progressPct = maxPayout > 0 ? Math.min((totalPayout / maxPayout) * 100, 100) : 0;
 
   return (
     <div className="glass-card gradient-border rounded-2xl p-6">
@@ -42,7 +59,7 @@ export default function WeeklyCoverageCard({ data = {}, lang = "en", t = () => "
         {DAYS.map((day, i) => {
           const isRainDay = daysWithRain.includes(i);
           const payout = payoutByDay[i];
-          const isToday = i === new Date().getDay() - 1;
+          const isToday = i === todayIdx;
 
           return (
             <div key={day} className="flex flex-col items-center gap-1.5">
@@ -88,7 +105,7 @@ export default function WeeklyCoverageCard({ data = {}, lang = "en", t = () => "
         <div className="h-1.5 bg-navy-700 rounded-full overflow-hidden">
           <div
             className="h-full bg-gradient-to-r from-amber-500 to-amber-400 rounded-full transition-all"
-            style={{ width: `${(totalPayout / maxPayout) * 100}%` }}
+            style={{ width: `${progressPct}%` }}
           />
         </div>
       </div>

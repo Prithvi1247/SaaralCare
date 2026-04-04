@@ -25,72 +25,15 @@ const STATUS_CONFIG = {
   },
 };
 
-const MOCK_CLAIMS = [
-  {
-    id: "CLM-2024-047",
-    date: "Dec 18, 2024",
-    rainfall: 34.2,
-    station: "Santacruz Observatory",
-    amount: 480,
-    status: "paid",
-    type: "full",
-    paidAt: "Dec 18, 2024 · 3:42 PM",
-  },
-  {
-    id: "CLM-2024-038",
-    date: "Dec 11, 2024",
-    rainfall: 19.8,
-    station: "Santacruz Observatory",
-    amount: 320,
-    status: "paid",
-    type: "full",
-    paidAt: "Dec 11, 2024 · 5:17 PM",
-  },
-  {
-    id: "CLM-2024-031",
-    date: "Dec 4, 2024",
-    rainfall: 41.0,
-    station: "Santacruz Observatory",
-    amount: 480,
-    status: "processing",
-    type: "full",
-    paidAt: null,
-  },
-  {
-    id: "CLM-2024-022",
-    date: "Nov 20, 2024",
-    rainfall: 9.3,
-    station: "Santacruz Observatory",
-    amount: 0,
-    status: "rejected",
-    type: null,
-    paidAt: null,
-  },
-];
-
-// NEW: Payout type mapping
 const getPayoutLabel = (type, lang, t) => {
-  if (type === "full") return lang === "hi" ? "पूर्ण भुगतान" : "Full Payout";
-  if (type === "partial") return lang === "hi" ? "आंशिक भुगतान" : "Partial Payout";
+  if (type === "full") return lang === "hi" ? "पूर्ण भुगतान" : lang === "ta" ? "முழு பணம்" : "Full Payout";
+  if (type === "partial") return lang === "hi" ? "आंशिक भुगतान" : lang === "ta" ? "பகுதி பணம்" : "Partial Payout";
   return type;
 };
 
-export default function ClaimHistory({ claims = MOCK_CLAIMS, payouts = [], lang = "en", t = () => "" }) {
-  // NEW: Support payouts prop from dashboard
-  const displayPayouts = payouts && payouts.length > 0
-    ? payouts.map((p, i) => ({
-        id: `CLM-${i}`,
-        date: "Recent",
-        rainfall: 25 + i * 5,
-        station: "Mapped Station",
-        amount: p.amount,
-        status: "paid",
-        type: p.type || "full",
-        paidAt: "Today",
-      }))
-    : claims;
-
-  const totalPaid = displayPayouts
+// TASK 1: Accepts real claims from dashboard; no MOCK_CLAIMS default
+export default function ClaimHistory({ claims = [], lang = "en", t = () => "" }) {
+  const totalPaid = claims
     .filter((c) => c.status === "paid")
     .reduce((sum, c) => sum + c.amount, 0);
 
@@ -107,17 +50,23 @@ export default function ClaimHistory({ claims = MOCK_CLAIMS, payouts = [], lang 
         </div>
         <div className="flex items-center gap-1.5 text-slate-400 text-xs">
           <FileText className="w-3.5 h-3.5" />
-          {displayPayouts.length} {t("events", lang)}
+          {claims.length} {t("events", lang)}
         </div>
       </div>
 
+      {/* Empty state */}
+      {claims.length === 0 && (
+        <p className="text-slate-500 text-sm text-center py-6">
+          {lang === "hi" ? "कोई भुगतान इतिहास नहीं" : lang === "ta" ? "பணம் வரலாறு இல்லை" : "No payout history yet"}
+        </p>
+      )}
+
       {/* Claims list */}
       <div className="space-y-3">
-        {displayPayouts.map((claim) => {
+        {claims.map((claim) => {
           const cfg = STATUS_CONFIG[claim.status] || STATUS_CONFIG.rejected;
           const Icon = cfg.icon;
 
-          // NEW: Map status labels with i18n
           let statusLabel = cfg.label;
           if (claim.status === "paid") {
             statusLabel = getPayoutLabel(claim.type, lang, t);
@@ -145,12 +94,16 @@ export default function ClaimHistory({ claims = MOCK_CLAIMS, payouts = [], lang 
                     {claim.status === "paid" ? `+₹${claim.amount}` : "—"}
                   </span>
                 </div>
+                {/* Show rainfall if available, otherwise fall back to station label */}
                 <div className="flex items-center gap-1.5 mt-1">
                   <CloudRain className="w-3 h-3 text-rain-400" />
                   <span className="text-slate-400 text-xs">
-                    {claim.rainfall}mm at {claim.station}
+                    {claim.rainfall > 0
+                      ? `${claim.rainfall}mm at ${claim.station}`
+                      : claim.station}
                   </span>
                 </div>
+                <p className="text-slate-500 text-xs mt-0.5">{claim.date}</p>
                 {claim.paidAt && (
                   <p className="text-slate-500 text-xs mt-0.5">
                     {t("paid", lang)} {claim.paidAt}
