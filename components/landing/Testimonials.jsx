@@ -4,7 +4,7 @@ import useScrollReveal from "@/hooks/useScrollReveal";
 const TESTIMONIALS = [
   {
     name: "Arjun S.",
-    zone: "Andheri, Mumbai",
+    zone: "Tambaram",
     platform: "Zomato",
     emoji: "🛵",
     quote:
@@ -12,15 +12,15 @@ const TESTIMONIALS = [
   },
   {
     name: "Priya M.",
-    zone: "Bandra, Mumbai",
-    platform: "Blinkit",
+    zone: "Mylapore",
+    platform: "Swiggy",
     emoji: "🚲",
     quote:
       "₹29 a week is less than a cup of chai. But when it rains heavy I know I'm not losing a full day's income.",
   },
   {
     name: "Ravi K.",
-    zone: "Thane",
+    zone: "Anna Nagar",
     platform: "Swiggy",
     emoji: "🏍️",
     quote:

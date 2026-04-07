@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronRight, ArrowRight } from "lucide-react";
-
+import Link from "next/link";
 function RainCanvas() {
   const canvasRef = useRef(null);
 
@@ -214,9 +214,10 @@ export default function Hero() {
 
             {/* CTAs */}
             <div className="flex flex-wrap gap-4 animate-fade-up opacity-0" style={{ animationDelay: "0.3s", animationFillMode: "forwards" }}>
-              <button className="px-8 py-4 bg-gradient-to-r from-rain-500 to-rain-600 text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-rain-500/50 transition-all flex items-center gap-2 group">
+              {/* <button className="px-8 py-4 bg-gradient-to-r from-rain-500 to-rain-600 text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-rain-500/50 transition-all flex items-center gap-2 group"> */}
+                <Link href="/login" className="px-8 py-4 bg-gradient-to-r from-rain-500 to-rain-600 text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-rain-500/50 transition-all flex items-center gap-2 group">
                 View Dashboard <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </button>
+                </Link>
               <button className="px-8 py-4 border border-rain-500/30 text-rain-400 rounded-xl font-semibold hover:bg-rain-500/10 transition-all">
                 How It Works
               </button>
@@ -227,7 +228,7 @@ export default function Hero() {
               {[
                 { val: "12,400+", lbl: "Workers Protected" },
                 { val: "<24 hrs", lbl: "Avg. Payout Time" },
-                { val: "8", lbl: "Cities Active" },
+                { val: "50+", lbl: "Cities Active" },
                 { val: "75.5%", lbl: "Loss Ratio" },
               ].map((stat, i) => (
                 <div key={i}>
