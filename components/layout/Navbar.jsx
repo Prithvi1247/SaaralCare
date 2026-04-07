@@ -3,111 +3,118 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Shield, Menu, X } from "lucide-react";
 
-export default function Navbar({ transparent = false }) {
-  const [open, setOpen] = useState(false);
+export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
+  const [open, setOpen] = useState(false);
 
-  // Handle background change on scroll for better visibility
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
+      setScrolled(window.scrollY > 40);
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const navLinks = [
-    { href: "#/landing/how-it-works", label: "How It Works" },
-    { href: "/#coverage", label: "Coverage" }, // Ensure BasisRisk.jsx or Features.jsx has id="coverage"
-    { href: "/#faq", label: "FAQ" },         // Ensure your FAQ component has id="faq"
+    { href: "#core", label: "System" },
+    { href: "#explain", label: "Explainability" },
+    { href: "#robustness", label: "Robustness" },
+    { href: "#basis", label: "Transparency" },
   ];
 
   const closeMenu = () => setOpen(false);
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        transparent && !scrolled && !open
-          ? "bg-transparent"
-          : "bg-navy-950/90 backdrop-blur-md border-b border-navy-800"
-      }`}
+      id="navbar"
+      className={`fixed top-0 left-0 right-0 z-50 h-16 px-8 flex items-center justify-between transition-all duration-300
+        ${scrolled 
+          ? "bg-[#060b14]/90 backdrop-blur-[16px] border-b border-[#162840]/80" 
+          : "bg-transparent"
+        }`}
     >
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-rain-500 to-rain-700 flex items-center justify-center shadow-lg shadow-rain-500/30 group-hover:shadow-rain-500/50 transition-shadow">
-              <Shield className="w-4 h-4 text-white" />
-            </div>
-            <span className="font-display font-semibold text-white text-lg tracking-tight">
-              Saaral<span className="text-rain-400">Care</span>
-              <span className="text-amber-400 ml-0.5">AI</span>
-            </span>
-          </Link>
+      <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
+        {/* Logo - Exact match to original */}
+        <Link href="/" className="nav-logo flex items-center gap-3 group">
+          <div className="logo-icon w-[34px] h-[34px] bg-gradient-to-br from-[#0ea5e9] to-[#0284c7] rounded-[10px] flex items-center justify-center text-xl shadow-[0_0_20px_rgba(14,165,233,0.4)] transition-all group-hover:shadow-[0_0_25px_rgba(14,165,233,0.6)]">
+            🛡️
+          </div>
+          <span className="font-bold text-white text-[1.1rem] tracking-tight font-display">
+            Saaral<span className="text-[#0ea5e9]">Care</span>
+            <span className="text-[#fbbf24]">AI</span>
+          </span>
+        </Link>
 
-          {/* Desktop nav */}
-          <div className="hidden md:flex items-center gap-8">
-            {navLinks.map((l) => (
+        {/* Desktop Links */}
+        <ul className="hidden md:flex nav-links items-center gap-8 list-none">
+          {navLinks.map((link) => (
+            <li key={link.href}>
               <Link
-                key={l.href}
-                href={l.href}
-                className="text-slate-400 hover:text-white text-sm font-medium transition-colors"
+                href={link.href}
+                className="text-[#94a3b8] hover:text-white text-[0.85rem] font-medium transition-colors duration-200"
               >
-                {l.label}
+                {link.label}
               </Link>
-            ))}
-          </div>
+            </li>
+          ))}
+        </ul>
 
-          {/* CTA */}
-          <div className="hidden md:flex items-center gap-3">
-            <Link href="/login" className="btn-secondary text-sm py-2 px-4">
-              Sign In
-            </Link>
-            <Link href="/login" className="btn-primary text-sm py-2 px-4">
-              Get Protected
-            </Link>
-          </div>
-
-          {/* Mobile toggle */}
-          <button
-            className="md:hidden text-slate-400 hover:text-white p-2"
-            onClick={() => setOpen(!open)}
-            aria-label="Toggle Menu"
+        {/* Desktop CTAs */}
+        <div className="hidden md:flex nav-cta items-center gap-3">
+          <Link
+            href="/login"
+            className="btn-secondary px-5 py-[9px] text-[0.85rem] font-semibold rounded-[10px] border border-[#38bdf8]/20 bg-[#162840]/60 text-[#cbd5e1] hover:border-[#38bdf8]/50 hover:bg-[#162840]/90 hover:text-white transition-all"
           >
-            {open ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
+            Sign In
+          </Link>
+          <Link
+            href="/get-protected"
+            className="btn-primary px-5 py-[9px] text-[0.85rem] font-semibold rounded-[10px] bg-gradient-to-r from-[#0ea5e9] to-[#0284c7] text-white shadow-[0_4px_20px_rgba(14,165,233,0.3)] hover:shadow-[0_8px_30px_rgba(14,165,233,0.4)] hover:-translate-y-[1px] transition-all"
+          >
+            Get Protected
+          </Link>
         </div>
+
+        {/* Mobile Menu Button */}
+        <button
+          onClick={() => setOpen(!open)}
+          className="md:hidden text-[#94a3b8] hover:text-white p-2 transition-colors"
+          aria-label="Toggle menu"
+        >
+          {open ? <X size={24} /> : <Menu size={24} />}
+        </button>
       </div>
 
-      {/* Mobile menu */}
+      {/* Mobile Menu */}
       <div
-        className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${
+        className={`md:hidden fixed inset-x-0 top-16 bg-[#0a1220] border-t border-[#162840]/80 transition-all duration-300 overflow-hidden ${
           open ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
-        } bg-navy-900 border-t border-navy-800`}
+        }`}
       >
-        <div className="px-4 py-6 space-y-4">
-          {navLinks.map((l) => (
+        <div className="px-6 py-8 flex flex-col gap-6">
+          {navLinks.map((link) => (
             <Link
-              key={l.href}
-              href={l.href}
-              className="block text-slate-300 hover:text-white text-base font-medium"
+              key={link.href}
+              href={link.href}
               onClick={closeMenu}
+              className="text-[#cbd5e1] hover:text-white text-base font-medium py-1 transition-colors"
             >
-              {l.label}
+              {link.label}
             </Link>
           ))}
-          <div className="pt-4 border-t border-navy-800 flex flex-col gap-3">
-            <Link 
-              href="/login" 
-              className="w-full py-3 text-center rounded-xl bg-navy-800 text-white font-medium border border-navy-700"
+
+          <div className="pt-6 border-t border-[#162840] flex flex-col gap-4">
+            <Link
+              href="/login"
               onClick={closeMenu}
+              className="btn-secondary w-full py-3 text-center rounded-[10px] text-sm font-semibold"
             >
               Sign In
             </Link>
-            <Link 
-              href="/login" 
-              className="w-full py-3 text-center rounded-xl bg-rain-600 text-white font-medium hover:bg-rain-500 transition-colors shadow-lg shadow-rain-900/20"
+            <Link
+              href="/get-protected"
               onClick={closeMenu}
+              className="btn-primary w-full py-3 text-center rounded-[10px] text-sm font-semibold"
             >
               Get Protected
             </Link>
