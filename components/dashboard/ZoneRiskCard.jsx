@@ -26,10 +26,10 @@ export default function ZoneRiskCard({ userZone = "—", riskLevel = "—", risk
       <div className="flex items-start justify-between mb-6">
         <div>
           <p className="text-slate-400 text-xs font-medium uppercase tracking-wide mb-1">
-            Zone Analysis
+            {t("zoneAnalysis", lang)}
           </p>
           <h3 className="font-display text-lg font-semibold text-white">
-            Your Zone Risk
+            {t("yourZoneRisk", lang)}
           </h3>
         </div>
         <TrendingUp className="w-4 h-4 text-slate-500" />
@@ -41,7 +41,7 @@ export default function ZoneRiskCard({ userZone = "—", riskLevel = "—", risk
           <div className="flex items-center gap-2">
             <span className="text-xl">{userBadge.icon}</span>
             <div>
-              <p className="text-slate-400 text-xs uppercase tracking-wide">Your Zone</p>
+              <p className="text-slate-400 text-xs uppercase tracking-wide">{t("yourZone", lang)}</p>
               <p className="text-white font-semibold text-sm">{userZone}</p>
             </div>
           </div>
@@ -53,7 +53,7 @@ export default function ZoneRiskCard({ userZone = "—", riskLevel = "—", risk
         {/* Risk Score Bar */}
         <div className="space-y-1.5">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-slate-400">Risk Score</span>
+            <span className="text-slate-400">{t("riskScore", lang)}</span>
             <span className="text-white font-semibold">{(riskScore || 0).toFixed(2)}</span>
           </div>
           <div className="h-1.5 bg-navy-800 rounded-full overflow-hidden">
@@ -69,7 +69,7 @@ export default function ZoneRiskCard({ userZone = "—", riskLevel = "—", risk
       {nearbyZones && nearbyZones.length > 0 && (
         <div>
           <p className="text-slate-400 text-xs font-medium uppercase tracking-wide mb-3">
-            Nearby Zones
+            {t("nearbyZones", lang)}
           </p>
           <div className="space-y-2">
             {nearbyZones.slice(0, 3).map((zone, i) => {
@@ -94,7 +94,7 @@ export default function ZoneRiskCard({ userZone = "—", riskLevel = "—", risk
       <div className="mt-4 pt-4 border-t border-navy-700/50 flex items-start gap-2 text-xs text-slate-400">
         <AlertCircle className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-slate-500" />
         <span>
-          Your premium is based on this zone's rainfall risk and seasonal patterns.
+          {t("premiumBasis", lang)}
         </span>
       </div>
     </div>

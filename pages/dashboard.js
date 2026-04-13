@@ -14,6 +14,7 @@ import RainfallStationCard  from "@/components/dashboard/RainfallStationCard";
 import WeeklyCoverageCard   from "@/components/dashboard/WeeklyCoverageCard";
 import PremiumCard          from "@/components/dashboard/PremiumCard";
 import ClaimHistory         from "@/components/dashboard/ClaimHistory";
+import ZoneRiskCard         from "@/components/dashboard/ZoneRiskCard";
 import { supabase }         from "@/lib/supabaseClient";
 
 // ── Translation dictionary ───────────────────────────────────────────────────
@@ -76,6 +77,12 @@ const T = {
     logout: "Logout",
     startDate: "Start Date",
     endDate: "End Date",
+    zoneAnalysis: "Zone Analysis",
+    yourZoneRisk: "Your Zone Risk",
+    yourZone: "Your Zone",
+    riskScore: "Risk Score",
+    nearbyZones: "Nearby Zones",
+    premiumBasis: "Your premium is based on this zone's rainfall risk and seasonal patterns.",
   },
   hi: {
     goodMorning: "सुप्रभात",
@@ -135,8 +142,13 @@ const T = {
     logout: "लॉगआउट",
     startDate: "शुरुआत तिथि",
     endDate: "समाप्ति तिथि",
+    zoneAnalysis: "क्षेत्र विश्लेषण",
+    yourZoneRisk: "आपका क्षेत्र जोखिम",
+    yourZone: "आपका क्षेत्र",
+    riskScore: "जोखिम स्कोर",
+    nearbyZones: "पास के क्षेत्र",
+    premiumBasis: "आपका प्रीमियम इस क्षेत्र के बारिश जोखिम और मौसमी पैटर्न पर आधारित है।",
   },
-  // TASK 3: Tamil translations added
   ta: {
     goodMorning: "காலை வணக்கம்",
     goodAfternoon: "மதிய வணக்கம்",
@@ -195,6 +207,12 @@ const T = {
     logout: "வெளியேறு",
     startDate: "தொடக்க தேதி",
     endDate: "முடிவு தேதி",
+    zoneAnalysis: "மண்டல பகுப்பாய்வு",
+    yourZoneRisk: "உங்கள் மண்டல அபாயம்",
+    yourZone: "உங்கள் மண்டலம்",
+    riskScore: "அபாய மதிப்பெண்",
+    nearbyZones: "அருகிலுள்ள மண்டலங்கள்",
+    premiumBasis: "உங்கள் பிரீமியம் இந்த மண்டலத்தின் மழை அபாயம் மற்றும் பருவகால முறைகளை அடிப்படையாகக் கொண்டது.",
   }
 };
 
@@ -245,6 +263,12 @@ export default function DashboardPage() {
   const [error, setError] = useState("");
   const [workerData, setWorkerData] = useState(null);
   const [policy, setPolicy] = useState(null);
+  const [riskData, setRiskData] = useState({
+    userZone: "—",
+    riskLevel: "Moderate",
+    riskScore: 0.65,
+    nearbyZones: []
+  });
 
   const [lang, setLang] = useState(() => {
     if (typeof window === "undefined") return "en";
@@ -282,6 +306,29 @@ export default function DashboardPage() {
           .single();
 
         if (policyData) setPolicy(policyData);
+
+        // ── Fetch Risk Data ───────────────────────────────────────────────────
+        const { data: allRisks } = await supabase
+          .from("risk_score")
+          .select("*");
+
+        if (allRisks && allRisks.length > 0) {
+          const userRisk = allRisks.find(r => r.district === worker.zone) || allRisks[0];
+          const nearby = allRisks
+            .filter(r => r.district !== userRisk.district)
+            .slice(0, 3)
+            .map(r => ({
+              name: r.district,
+              riskLevel: r.predicted_label
+            }));
+
+          setRiskData({
+            userZone: userRisk.district,
+            riskLevel: userRisk.predicted_label,
+            riskScore: userRisk.risk_score,
+            nearbyZones: nearby
+          });
+        }
 
         // ── TASK 2: Real premium payments — latest 5, ordered desc ───────────
         const { data: payments } = await supabase
@@ -527,77 +574,76 @@ export default function DashboardPage() {
               if (updatedWorker) {
                 setWorkerData(prev => ({
                   ...prev,
-                  worker: { ...prev.worker, plan_status: updatedWorker.plan_status }
+                  worker: { ...prev.worker, plan_status: updatedWorker.plan_status },
+                  coverage: { ...prev.coverage, coverageStatus: updatedWorker.plan_status === "active" ? "active" : "inactive" }
                 }));
               }
             }
+          } else {
+            alert("Payment verification failed");
           }
         },
+        prefill: {
+          name: workerData.worker.name,
+          contact: workerData.worker.phone,
+        },
+        theme: { color: "#2dbd77" },
       };
       const rzp = new window.Razorpay(options);
       rzp.open();
     } catch (err) {
-      alert("Payment failed");
+      console.error(err);
+      alert("Error initiating payment");
     }
   }
 
   function handleLogout() {
-    sessionStorage.clear();
+    sessionStorage.removeItem("gs_worker_phone");
     window.location.href = "/login";
   }
 
-  const rawStatus = workerData?.worker?.plan_status;
-  const status = (rawStatus === "active" || rawStatus === "activating") ? rawStatus : "none";
-  const daysLeft = workerData?.premium?.daysLeft ?? 7;
+  function cycleLang() {
+    const next = lang === "en" ? "hi" : lang === "hi" ? "ta" : "en";
+    setLang(next);
+  }
 
-  // TASK 3: activatingLabel per language
-  const activatingLabel =
-    lang === "hi" ? `${daysLeft} दिनों में सक्रिय होगा...` :
-    lang === "ta" ? `${daysLeft} நாட்களில் செயல்படும்...` :
-    `Activating in ${daysLeft} days...`;
+  if (loading) return <div className="min-h-screen bg-navy-950 p-8"><DashboardSkeleton /></div>;
+  if (error) return <div className="min-h-screen bg-navy-950 p-8"><ErrorState message={error} onLogout={handleLogout} /></div>;
 
   const planStatus = {
-    status,
-    label: status === "active" ? t("coverageActive", lang) : status === "activating" ? activatingLabel : t("noPlan", lang),
-    color: status === "active" ? "emerald" : status === "activating" ? "amber" : "slate",
-  };
+    active: { label: t("coverageActive", lang), color: "emerald" },
+    inactive: { label: t("noPlan", lang), color: "slate" },
+    none: { label: t("noPlan", lang), color: "slate" },
+    activating: { label: "Activating...", color: "amber" },
+  }[workerData.worker.plan_status || "none"];
 
-  const statusColors = {
-    active: { bg: "bg-[#1e293b]", border: "border-emerald-500/30", badge: "bg-slate-800/80 text-slate-300", icon: CheckCircle2 },
-    activating: { bg: "bg-[#1e293b]", border: "border-amber-500/30", badge: "bg-amber-500/10 text-amber-500", icon: Clock },
-    none: { bg: "bg-[#0f1423]", border: "border-slate-800/80", badge: "bg-slate-800/80 text-slate-300", icon: AlertCircle },
-  };
+  const colors = {
+    emerald: { bg: "bg-emerald-500/5", border: "border-emerald-500/20", badge: "bg-emerald-500/10 text-emerald-400" },
+    slate: { bg: "bg-slate-500/5", border: "border-slate-500/20", badge: "bg-slate-500/10 text-slate-400" },
+    amber: { bg: "bg-amber-500/5", border: "border-amber-500/20", badge: "bg-amber-500/10 text-amber-400" },
+  }[planStatus.color];
 
-  const colors = statusColors[planStatus.status] || statusColors.none;
-  const StatusIcon = colors.icon;
-
-  if (loading) return <div className="min-h-screen bg-[#090b14] p-8"><DashboardSkeleton /></div>;
-  if (error) return <div className="min-h-screen bg-[#090b14] p-8"><ErrorState message={error} onLogout={handleLogout} /></div>;
-
-  // TASK 3: cycle en → hi → ta → en
-  function cycleLang() {
-    setLang(prev => prev === "en" ? "hi" : prev === "hi" ? "ta" : "en");
-  }
-  const langLabel = lang === "en" ? "हिन्दी" : lang === "hi" ? "தமிழ்" : "English";
+  const StatusIcon = planStatus.color === "emerald" ? CheckCircle2 : planStatus.color === "amber" ? Clock : Shield;
+  const langLabel = { en: "English", hi: "हिंदी", ta: "தமிழ்" }[lang];
+  const activatingLabel = lang === "hi" ? "सक्रिय हो रहा है..." : lang === "ta" ? "செயல்படுகிறது..." : "Activating...";
 
   return (
     <>
       <Head>
-        <title>Dashboard — SaaralCare AI</title>
+        <title>Dashboard | SaaralCare AI</title>
         <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
       </Head>
 
-      <div className="min-h-screen bg-[#090b14]">
-        <header className="sticky top-0 z-40 bg-[#090b14]/90 backdrop-blur-md border-b border-navy-800">
+      <div className="min-h-screen bg-[#0a0f1e] text-slate-200 font-sans selection:bg-rain-500/30">
+        {/* Header */}
+        <header className="border-b border-navy-800/50 bg-navy-950/50 backdrop-blur-md sticky top-0 z-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#5fa8d3] to-blue-700 flex items-center justify-center">
-                <Shield className="w-4 h-4 text-white" />
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-rain-500 rounded-lg flex items-center justify-center shadow-lg shadow-rain-500/20">
+                <CloudRain className="w-5 h-5 text-white" />
               </div>
-              <span className="font-display font-semibold text-white text-lg">
-                Saaral<span className="text-[#5fa8d3]">Care</span><span className="text-amber-400 ml-0.5">AI</span>
-              </span>
-            </Link>
+              <span className="font-display text-lg font-bold text-white tracking-tight">SaaralCare <span className="text-rain-400">AI</span></span>
+            </div>
 
             <div className="flex items-center gap-3">
               {/* TASK 3: Three-way language toggle */}
@@ -694,14 +740,26 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* ROW 2: Weekly Coverage, Live Weather, Worker Details */}
+          {/* ROW 2: Zone Risk Card (Full Width) */}
+          <div className="w-full">
+            <ZoneRiskCard 
+              userZone={riskData.userZone}
+              riskLevel={riskData.riskLevel}
+              riskScore={riskData.riskScore}
+              nearbyZones={riskData.nearbyZones}
+              lang={lang}
+              t={t}
+            />
+          </div>
+
+          {/* ROW 3: Weekly Coverage, Live Weather, Worker Details */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             <WeeklyCoverageCard data={workerData.coverage} lang={lang} t={t} />
             <RainfallStationCard data={workerData.station} lang={lang} t={t} />
             <WorkerZoneCard data={workerData.worker} lang={lang} t={t} />
           </div>
 
-          {/* ROW 3: Payout History — now real Supabase data */}
+          {/* ROW 4: Payout History — now real Supabase data */}
           <ClaimHistory claims={workerData.allPayouts} lang={lang} t={t} />
 
         </main>
