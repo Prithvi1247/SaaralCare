@@ -68,7 +68,7 @@ export default function Navbar() {
             Sign In
           </Link>
           <Link
-            href="/get-protected"
+            href="/login"
             className="btn-primary px-5 py-[9px] text-[0.85rem] font-semibold rounded-[10px] bg-gradient-to-r from-[#0ea5e9] to-[#0284c7] text-white shadow-[0_4px_20px_rgba(14,165,233,0.3)] hover:shadow-[0_8px_30px_rgba(14,165,233,0.4)] hover:-translate-y-[1px] transition-all"
           >
             Get Protected
@@ -107,17 +107,11 @@ export default function Navbar() {
             <Link
               href="/login"
               onClick={closeMenu}
-              className="btn-secondary w-full py-3 text-center rounded-[10px] text-sm font-semibold"
+              className="btn-primary w-full py-3 text-center rounded-[10px] text-sm font-semibold"
             >
               Sign In
             </Link>
-            <Link
-              href="/get-protected"
-              onClick={closeMenu}
-              className="btn-primary w-full py-3 text-center rounded-[10px] text-sm font-semibold"
-            >
-              Get Protected
-            </Link>
+            
           </div>
         </div>
       </div>
