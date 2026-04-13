@@ -315,14 +315,16 @@ export default function DashboardPage() {
           .order("payout_time", { ascending: false })
           .limit(5);
 
-        // ── TASK 4: This week's payouts for WeeklyCoverageCard ────────────────
-        const { monday, sunday } = getCurrentWeekRange();
+        // ── TASK 4: Last 7 days payouts for WeeklyCoverageCard ────────────────
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+        sevenDaysAgo.setHours(0, 0, 0, 0);
+        
         const { data: weekPayouts } = await supabase
           .from("coverage_payout")
           .select("*")
           .eq("worker_id", worker.id)
-          .gte("payout_time", monday.toISOString())
-          .lte("payout_time", sunday.toISOString());
+          .gte("payout_time", sevenDaysAgo.toISOString());
 
         // ── Fetch yesterday's rainfall ────────────────────────────────────────
         const yesterday = new Date();
@@ -463,11 +465,8 @@ export default function DashboardPage() {
           },
           // TASK 4: dynamic week coverage from real data
           coverage: {
-            weekStart: formatShortDate(monday),
-            weekEnd: formatShortDate(sunday),
             coverageStatus: worker.plan_status === "active" ? "active" : "inactive",
-            daysWithRain: uniqueRainDays,
-            payouts: weekPayoutsForCard,
+            payouts: weekPayouts || [],
             totalPayout: weeklyTotalPayout,
             maxPayout: maxWeeklyPayout,
             nextRenewal: formatShortDate(nextRenewalDate),
