@@ -14,6 +14,7 @@ import RainfallStationCard  from "@/components/dashboard/RainfallStationCard";
 import WeeklyCoverageCard   from "@/components/dashboard/WeeklyCoverageCard";
 import PremiumCard          from "@/components/dashboard/PremiumCard";
 import ClaimHistory         from "@/components/dashboard/ClaimHistory";
+import ZoneRiskCard         from "@/components/dashboard/ZoneRiskCard";
 import { supabase }         from "@/lib/supabaseClient";
 
 // ── Translation dictionary ───────────────────────────────────────────────────
@@ -76,6 +77,11 @@ const T = {
     logout: "Logout",
     startDate: "Start Date",
     endDate: "End Date",
+    zoneAnalysis: "Zone Analysis",
+    yourZoneRisk: "Your Zone Risk",
+    yourZone: "Your Zone",
+    riskScore: "Risk Score",
+    premiumBasis: "Your premium is based on this zone's rainfall risk and seasonal patterns.",
   },
   hi: {
     goodMorning: "सुप्रभात",
@@ -135,6 +141,11 @@ const T = {
     logout: "लॉगआउट",
     startDate: "शुरुआत तिथि",
     endDate: "समाप्ति तिथि",
+    zoneAnalysis: "क्षेत्र विश्लेषण",
+    yourZoneRisk: "आपका क्षेत्र जोखिम",
+    yourZone: "आपका क्षेत्र",
+    riskScore: "जोखिम स्कोर",
+    premiumBasis: "आपका प्रीमियम इस क्षेत्र के बारिश जोखिम और मौसमी पैटर्न पर आधारित है।",
   },
   // TASK 3: Tamil translations added
   ta: {
@@ -195,6 +206,11 @@ const T = {
     logout: "வெளியேறு",
     startDate: "தொடக்க தேதி",
     endDate: "முடிவு தேதி",
+    zoneAnalysis: "மண்டல பகுப்பாய்வு",
+    yourZoneRisk: "உங்கள் மண்டல அபாயம்",
+    yourZone: "உங்கள் மண்டலம்",
+    riskScore: "அபாய மதிப்பெண்",
+    premiumBasis: "உங்கள் பிரீமியம் இந்த மண்டலத்தின் மழை அபாயம் மற்றும் பருவகால முறைகளை அடிப்படையாகக் கொண்டது.",
   }
 };
 
@@ -697,7 +713,12 @@ export default function DashboardPage() {
           {/* ROW 2: Weekly Coverage, Live Weather, Worker Details */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             <WeeklyCoverageCard data={workerData.coverage} lang={lang} t={t} />
-            <RainfallStationCard data={workerData.station} lang={lang} t={t} />
+            <ZoneRiskCard 
+              userZone={workerData.worker.zone} 
+              stationId={workerData.station.stationId} 
+              lang={lang} 
+              t={t} 
+            />
             <WorkerZoneCard data={workerData.worker} lang={lang} t={t} />
           </div>
 
