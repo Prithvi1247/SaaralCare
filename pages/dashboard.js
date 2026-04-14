@@ -1,5 +1,5 @@
 // pages/dashboard.js — Worker dashboard with language support
-// FIXED: Added yesterday's rainfall fetch and mapped deliveryZone to the station card
+// FIXED: Restored coverage dates and polished Insurance Coverage card UI
 
 import { useState, useEffect } from "react";
 import Head from "next/head";
@@ -147,7 +147,6 @@ const T = {
     riskScore: "जोखिम स्कोर",
     premiumBasis: "आपका प्रीमियम इस क्षेत्र के बारिश जोखिम और मौसमी पैटर्न पर आधारित है।",
   },
-  // TASK 3: Tamil translations added
   ta: {
     goodMorning: "காலை வணக்கம்",
     goodAfternoon: "மதிய வணக்கம்",
@@ -396,8 +395,8 @@ export default function DashboardPage() {
           daysUntilActive = Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
         }
 
-        const displayStartDate = paymentStartDate.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
-        const displayEndDate = paymentEndDate.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+        const displayStartDate = paymentStartDate.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+        const displayEndDate = paymentEndDate.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
 
         // ── TASK 1: Map real payouts → ClaimHistory format ────────────────────
         const formattedPayouts = (payouts || []).map((p) => {
@@ -578,9 +577,27 @@ export default function DashboardPage() {
   };
 
   const statusColors = {
-    active: { bg: "bg-[#1e293b]", border: "border-emerald-500/30", badge: "bg-slate-800/80 text-slate-300", icon: CheckCircle2 },
-    activating: { bg: "bg-[#1e293b]", border: "border-amber-500/30", badge: "bg-amber-500/10 text-amber-500", icon: Clock },
-    none: { bg: "bg-[#0f1423]", border: "border-slate-800/80", badge: "bg-slate-800/80 text-slate-300", icon: AlertCircle },
+    active: { 
+      bg: "bg-[#1e293b]", 
+      border: "border-emerald-500/30", 
+      badge: "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20", 
+      icon: CheckCircle2,
+      glow: "shadow-[0_0_15px_rgba(16,185,129,0.1)]"
+    },
+    activating: { 
+      bg: "bg-[#1e293b]", 
+      border: "border-amber-500/30", 
+      badge: "bg-amber-500/10 text-amber-500 border border-amber-500/20", 
+      icon: Clock,
+      glow: "shadow-[0_0_15px_rgba(245,158,11,0.1)]"
+    },
+    none: { 
+      bg: "bg-[#0f1423]", 
+      border: "border-slate-800/80", 
+      badge: "bg-slate-800/80 text-slate-400 border border-slate-700/30", 
+      icon: AlertCircle,
+      glow: ""
+    },
   };
 
   const colors = statusColors[planStatus.status] || statusColors.none;
@@ -641,67 +658,70 @@ export default function DashboardPage() {
             </h1>
           </div>
 
-          {/* ROW 1: Insurance Coverage (UNTOUCHED) + Premium Payments */}
+          {/* ROW 1: Insurance Coverage + Premium Payments */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
             <div className="lg:col-span-2 flex flex-col h-full">
-              <div className={`rounded-2xl p-6 border ${colors.border} ${colors.bg} shadow-lg h-full flex flex-col justify-between`}>
-
-                <div>
-                  <div className="flex items-start justify-between mb-5">
-                    <div>
-                      <div className="flex items-center gap-2 mb-3">
-                        <StatusIcon className="w-5 h-5 text-slate-300" style={{ color: planStatus.color === "emerald" ? "#34d399" : planStatus.color === "amber" ? "#fbbf24" : "#94a3b8" }} />
-                        <h3 className="font-display text-xl font-bold text-white font-serif">{t("insuranceCoverage", lang)}</h3>
-                      </div>
-                      <p className={`text-xs font-medium px-3 py-1.5 rounded-full inline-block ${colors.badge}`}>
-                        {planStatus.label}
-                      </p>
+              <div className={`rounded-2xl p-6 border ${colors.border} ${colors.bg} ${colors.glow} shadow-lg h-full flex flex-col`}>
+                
+                {/* Header Section */}
+                <div className="flex items-start justify-between mb-6">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-display text-xl font-bold text-white">{t("insuranceCoverage", lang)}</h3>
                     </div>
-                    <div className="p-2">
-                      <Calendar className="w-5 h-5 text-slate-500" />
+                    <div className="flex items-center gap-2 text-slate-400 text-sm">
+                      <Calendar className="w-3.5 h-3.5" />
+                      <span>{workerData.premium.startDate} – {workerData.premium.endDate}</span>
                     </div>
                   </div>
+                  <div className={`px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase ${colors.badge}`}>
+                    {planStatus.label}
+                  </div>
+                </div>
 
+                {/* Main Content */}
+                <div className="flex-grow space-y-6">
                   {planStatus.status === "none" && (
-                    <div className="bg-[#12182b] border border-[#1e293b] rounded-xl p-4 mb-5 flex items-center">
+                    <div className="bg-navy-900/50 border border-slate-800 rounded-xl p-4 flex items-center gap-3">
+                      <AlertCircle className="w-5 h-5 text-amber-500 shrink-0" />
                       <p className="text-slate-400 text-sm">{t("noActiveCoverage", lang)}</p>
                     </div>
                   )}
 
-                  <div className="grid grid-cols-2 gap-4 mb-4">
-                    <div className="bg-[#12182b] rounded-xl p-4 border border-[#1e293b]/50 hover:border-[#1e293b] transition-colors">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="bg-navy-900/40 rounded-xl p-5 border border-slate-800/50 hover:border-slate-700 transition-colors">
                       <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-2">{t("weeklyPremium", lang)}</p>
-                      <p className="font-display text-3xl font-bold text-[#5fa8d3] font-serif">₹{workerData.premium.weeklyPremium}</p>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-white text-lg font-medium">₹</span>
+                        <span className="font-display text-3xl font-bold text-white">{workerData.premium.weeklyPremium}</span>
+                      </div>
                     </div>
-                    <div className="bg-[#12182b] rounded-xl p-4 border border-[#1e293b]/50 hover:border-[#1e293b] transition-colors">
+                    <div className="bg-navy-900/40 rounded-xl p-5 border border-slate-800/50 hover:border-slate-700 transition-colors">
                       <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-2">{t("coveragePerDay", lang)}</p>
-                      <p className="font-display text-3xl font-bold text-[#5fa8d3] font-serif">₹{workerData.premium.dailyCoverage}</p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4 mb-6">
-                    <div className="bg-[#12182b] rounded-xl p-4 border border-[#1e293b]/50 hover:border-[#1e293b] transition-colors">
-                      <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-1">{t("startDate", lang)}</p>
-                      <p className="text-white text-sm font-medium">{workerData.premium.startDate}</p>
-                    </div>
-                    <div className="bg-[#12182b] rounded-xl p-4 border border-[#1e293b]/50 hover:border-[#1e293b] transition-colors">
-                      <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-1">{t("endDate", lang)}</p>
-                      <p className="text-white text-sm font-medium">{workerData.premium.endDate}</p>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-white text-lg font-medium">₹</span>
+                        <span className="font-display text-3xl font-bold text-white">{workerData.premium.dailyCoverage}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                <button
-                  onClick={handleBuyPlan}
-                  disabled={planStatus.status === "activating"}
-                  className={`w-full mt-auto py-3.5 rounded-xl font-semibold text-[15px] tracking-wide transition-all duration-200 shadow-sm ${
-                    planStatus.status === "activating"
-                      ? "bg-slate-700 text-slate-400 cursor-not-allowed"
-                      : "bg-[#2dbd77] hover:bg-[#25a566] text-white hover:shadow-md active:scale-[0.99]"
-                  }`}
-                >
-                  {planStatus.status === "none" ? t("buyPlan", lang) : planStatus.status === "activating" ? activatingLabel : t("renewPlan", lang)}
-                </button>
+                {/* Action Button */}
+                <div className="mt-8">
+                  <button
+                    onClick={handleBuyPlan}
+                    disabled={planStatus.status === "activating"}
+                    className={`w-full py-4 rounded-xl font-bold text-base tracking-wide transition-all duration-200 shadow-lg active:scale-[0.98] ${
+                      planStatus.status === "activating"
+                        ? "bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700"
+                        : planStatus.status === "active"
+                        ? "bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-900/20"
+                        : "bg-blue-600 hover:bg-blue-500 text-white shadow-blue-900/20"
+                    }`}
+                  >
+                    {planStatus.status === "none" ? t("buyPlan", lang) : planStatus.status === "activating" ? activatingLabel : t("renewPlan", lang)}
+                  </button>
+                </div>
               </div>
             </div>
             <div className="flex flex-col h-full">
@@ -709,7 +729,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* ROW 2: Weekly Coverage, Live Weather, Worker Details */}
+          {/* ROW 2: Weekly Coverage, Zone Risk, Worker Details */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             <WeeklyCoverageCard data={workerData.coverage} lang={lang} t={t} />
             <ZoneRiskCard 
