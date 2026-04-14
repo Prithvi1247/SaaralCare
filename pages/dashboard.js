@@ -1,5 +1,5 @@
 // pages/dashboard.js — Worker dashboard with language support
-// FIXED: Restored coverage dates and polished Insurance Coverage card UI
+// FIXED: Restored coverage dates, polished Insurance Coverage card UI, positioned dynamic dates below amounts
 
 import { useState, useEffect } from "react";
 import Head from "next/head";
@@ -361,6 +361,7 @@ export default function DashboardPage() {
         const weeklyTotalPayout = (weekPayouts || []).reduce((sum, p) => sum + (p.payout_amount || 0), 0);
         const maxWeeklyPayout = policyData?.coverage_cap ?? (policyData?.coverage_per_day * 3 || STATIC_PREMIUM.maxWeeklyPayout);
 
+        const { sunday } = getCurrentWeekRange(); // Restored to fetch 'sunday'
         const nextRenewalDate = new Date(sunday);
         nextRenewalDate.setDate(sunday.getDate() + 1);
 
@@ -663,15 +664,11 @@ export default function DashboardPage() {
             <div className="lg:col-span-2 flex flex-col h-full">
               <div className={`rounded-2xl p-6 border ${colors.border} ${colors.bg} ${colors.glow} shadow-lg h-full flex flex-col`}>
                 
-                {/* Header Section */}
+                {/* Header Section (Removed the small dates from here) */}
                 <div className="flex items-start justify-between mb-6">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
                       <h3 className="font-display text-xl font-bold text-white">{t("insuranceCoverage", lang)}</h3>
-                    </div>
-                    <div className="flex items-center gap-2 text-slate-400 text-sm">
-                      <Calendar className="w-3.5 h-3.5" />
-                      <span>{workerData.premium.startDate} – {workerData.premium.endDate}</span>
                     </div>
                   </div>
                   <div className={`px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase ${colors.badge}`}>
@@ -680,7 +677,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Main Content */}
-                <div className="flex-grow space-y-6">
+                <div className="flex-grow space-y-4">
                   {planStatus.status === "none" && (
                     <div className="bg-navy-900/50 border border-slate-800 rounded-xl p-4 flex items-center gap-3">
                       <AlertCircle className="w-5 h-5 text-amber-500 shrink-0" />
@@ -688,6 +685,7 @@ export default function DashboardPage() {
                     </div>
                   )}
 
+                  {/* Top Row: Amounts Grid */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="bg-navy-900/40 rounded-xl p-5 border border-slate-800/50 hover:border-slate-700 transition-colors">
                       <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-2">{t("weeklyPremium", lang)}</p>
@@ -703,6 +701,14 @@ export default function DashboardPage() {
                         <span className="font-display text-3xl font-bold text-white">{workerData.premium.dailyCoverage}</span>
                       </div>
                     </div>
+                  </div>
+
+                  {/* Bottom Row: Dynamic Dates perfectly sized and positioned below the amounts */}
+                  <div className="bg-navy-900/40 rounded-xl p-5 border border-slate-800/50 hover:border-slate-700 transition-colors flex items-center justify-center gap-3">
+                    <Calendar className="w-6 h-6 text-slate-400" />
+                    <span className="font-display text-2xl sm:text-3xl font-bold text-white">
+                      {workerData.premium.startDate} – {workerData.premium.endDate}
+                    </span>
                   </div>
                 </div>
 
