@@ -186,7 +186,7 @@ export default function DayDetailModal({ isOpen, onClose, dayIndex, weekDates = 
     >
       {/* Modal Container */}
       <div
-        className="relative w-full sm:max-w-xl h-full sm:h-auto sm:max-h-[90vh] overflow-y-auto sm:rounded-[32px] border-t sm:border border-slate-800 shadow-2xl animate-in fade-in zoom-in duration-200"
+        className="relative w-full sm:max-w-xl h-full sm:h-auto sm:max-h-[90vh] overflow-y-auto sm:rounded-[32px] border-t sm:border border-slate-800 shadow-2xl animate-in fade-in zoom-in duration-200 flex flex-col"
         style={{ backgroundColor: "#070b14", scrollbarWidth: "thin", scrollbarColor: "#1e293b transparent" }}
       >
         {/* Sticky header */}
@@ -224,7 +224,7 @@ export default function DayDetailModal({ isOpen, onClose, dayIndex, weekDates = 
         </div>
 
         {/* Body */}
-        <div className="px-6 sm:px-8 pb-10 space-y-6 pt-6">
+        <div className="px-6 sm:px-8 pb-10 space-y-6 pt-6 flex-1">
           {/* Loading */}
           {loading && (
             <div className="flex flex-col items-center justify-center py-24 gap-4">
@@ -240,10 +240,10 @@ export default function DayDetailModal({ isOpen, onClose, dayIndex, weekDates = 
             </div>
           )}
 
-          {/* No data */}
+          {/* No data condition: Show EmptyState ONLY if hasData is false */}
           {!loading && !err && detail && !detail.hasData && <EmptyState t={t} lang={lang} />}
 
-          {/* Main content */}
+          {/* Main content: Show if hasData is true (even if values are 0) */}
           {!loading && !err && detail && detail.hasData && (
             <>
               {/* Explanation Section */}
@@ -270,10 +270,12 @@ export default function DayDetailModal({ isOpen, onClose, dayIndex, weekDates = 
                 t={t}
               />
 
-              {/* Hourly rain graph */}
-              <div className="bg-[#0d1424] border border-slate-800 rounded-[24px] p-6">
-                <RainGraph chartData={detail.chartData} peakMm={detail.peakMm} lang={lang} t={t} />
-              </div>
+              {/* Hourly rain graph - Only show if there are events */}
+              {detail.events.length > 0 && (
+                <div className="bg-[#0d1424] border border-slate-800 rounded-[24px] p-6">
+                  <RainGraph chartData={detail.chartData} peakMm={detail.peakMm} lang={lang} t={t} />
+                </div>
+              )}
 
               {/* Payout details */}
               <PayoutDetail payout={detail.payout} tier={detail.payoutTier} t={t} lang={lang} />
