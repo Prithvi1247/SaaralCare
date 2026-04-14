@@ -1,10 +1,10 @@
 // TriggerCard.jsx
 // Shows the core payout formula: Intensity × Duration = Trigger → Tier
-export default function TriggerCard({ intensity, duration, trigger, tier }) {
+export default function TriggerCard({ intensity, duration, trigger, tier, lang = "en", t = (k) => k }) {
   const tierConfig = {
-    FULL:    { label: "FULL PAYOUT",    bg: "bg-emerald-500/15", border: "border-emerald-500/40", text: "text-emerald-400", glow: "shadow-emerald-500/20" },
-    PARTIAL: { label: "PARTIAL PAYOUT", bg: "bg-amber-500/15",   border: "border-amber-500/40",   text: "text-amber-400",   glow: "shadow-amber-500/20"   },
-    NONE:    { label: "NO PAYOUT",      bg: "bg-slate-700/30",   border: "border-slate-600/40",   text: "text-slate-400",   glow: ""                      },
+    FULL:    { label: t("full_payout", lang),    bg: "bg-emerald-500/15", border: "border-emerald-500/40", text: "text-emerald-400", glow: "shadow-emerald-500/20" },
+    PARTIAL: { label: t("partial_payout", lang), bg: "bg-amber-500/15",   border: "border-amber-500/40",   text: "text-amber-400",   glow: "shadow-amber-500/20"   },
+    NONE:    { label: t("no_payout", lang),      bg: "bg-slate-700/30",   border: "border-slate-600/40",   text: "text-slate-400",   glow: ""                      },
   };
   const cfg = tierConfig[tier] || tierConfig.NONE;
 
@@ -16,12 +16,11 @@ export default function TriggerCard({ intensity, duration, trigger, tier }) {
   return (
     <div
       className={`rounded-2xl p-5 border ${cfg.bg} ${cfg.border} ${cfg.glow} shadow-lg`}
-      style={{ boxShadow: tier !== "NONE" ? undefined : undefined }}
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <span className="text-slate-300 text-xs font-semibold uppercase tracking-widest">
-          Trigger Formula
+          {t("trigger_formula", lang)}
         </span>
         <span className={`text-xs font-bold px-3 py-1 rounded-full ${cfg.bg} ${cfg.border} border ${cfg.text}`}>
           {cfg.label}
@@ -30,18 +29,18 @@ export default function TriggerCard({ intensity, duration, trigger, tier }) {
 
       {/* Formula row */}
       <div className="flex items-center justify-center gap-3 mb-5 flex-wrap">
-        <FormulaCell label="Intensity" value={`${intensity}`} unit="mm/hr" color="text-[#5fa8d3]" />
+        <FormulaCell label={t("intensity", lang)} value={`${intensity}`} unit="mm/hr" color="text-[#5fa8d3]" />
         <Op>×</Op>
-        <FormulaCell label="Duration"  value={`${duration}`}  unit="hrs"   color="text-purple-400"  />
+        <FormulaCell label={t("duration", lang)}  value={`${duration}`}  unit="hrs"   color="text-purple-400"  />
         <Op>=</Op>
-        <FormulaCell label="Trigger"   value={`${trigger}`}   unit=""      color={cfg.text} large />
+        <FormulaCell label={t("trigger", lang)}   value={`${trigger}`}   unit=""      color={cfg.text} large />
       </div>
 
       {/* Progress bar toward threshold */}
       <div className="mb-2">
         <div className="flex justify-between text-xs text-slate-500 mb-1.5">
           <span>0</span>
-          <span className="text-slate-400">Threshold</span>
+          <span className="text-slate-400">{t("threshold_label", lang)}</span>
           <span className="font-semibold text-slate-300">50</span>
         </div>
         <div className="relative h-3 bg-slate-800 rounded-full overflow-hidden">
@@ -56,9 +55,9 @@ export default function TriggerCard({ intensity, duration, trigger, tier }) {
 
       {/* Rule summary */}
       <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-        <RuleChip range="≥ 50" label="Full"    active={tier === "FULL"}    color="emerald" />
-        <RuleChip range="30–49" label="Partial" active={tier === "PARTIAL"} color="amber"   />
-        <RuleChip range="< 30"  label="None"    active={tier === "NONE"}    color="slate"   />
+        <RuleChip range="≥ 50" label={t("full_payout", lang)}    active={tier === "FULL"}    color="emerald" />
+        <RuleChip range="30–49" label={t("partial_payout", lang)} active={tier === "PARTIAL"} color="amber"   />
+        <RuleChip range="< 30"  label={t("no_payout", lang)}    active={tier === "NONE"}    color="slate"   />
       </div>
     </div>
   );

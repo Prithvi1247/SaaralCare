@@ -15,7 +15,7 @@ const CustomTooltip = ({ active, payload, label }) => {
   );
 };
 
-export default function RainGraph({ chartData = [], peakMm = 0 }) {
+export default function RainGraph({ chartData = [], peakMm = 0, lang = "en", t = (k) => k }) {
   if (!chartData.length) return null;
 
   const avg = chartData.reduce((s, d) => s + d.mm, 0) / chartData.length;
@@ -24,16 +24,16 @@ export default function RainGraph({ chartData = [], peakMm = 0 }) {
     <div>
       <div className="flex items-center justify-between mb-3">
         <span className="text-slate-300 text-xs font-semibold uppercase tracking-widest">
-          Hourly Rainfall
+          {t("hourly_rainfall", lang)}
         </span>
         <div className="flex items-center gap-3 text-xs text-slate-500">
           <span className="flex items-center gap-1">
             <span className="w-2.5 h-2.5 rounded-sm bg-[#5fa8d3] inline-block opacity-60" />
-            Normal
+            {t("normal", lang)}
           </span>
           <span className="flex items-center gap-1">
             <span className="w-2.5 h-2.5 rounded-sm bg-amber-400 inline-block" />
-            Peak
+            {t("peak", lang)}
           </span>
         </div>
       </div>
@@ -60,7 +60,7 @@ export default function RainGraph({ chartData = [], peakMm = 0 }) {
                 y={avg}
                 stroke="#475569"
                 strokeDasharray="4 4"
-                label={{ value: "avg", fill: "#475569", fontSize: 9, position: "insideTopRight" }}
+                label={{ value: t("avg", lang), fill: "#475569", fontSize: 9, position: "insideTopRight" }}
               />
             )}
             <Bar dataKey="mm" radius={[4, 4, 0, 0]} maxBarSize={28}>
@@ -78,7 +78,7 @@ export default function RainGraph({ chartData = [], peakMm = 0 }) {
 
       {peakMm > 0 && (
         <p className="text-xs text-amber-400/80 mt-2 text-center">
-          ⚡ Peak: {peakMm.toFixed(1)} mm — highlighted in amber
+          ⚡ {t("peak_highlight", lang).replace("{val}", peakMm.toFixed(1))}
         </p>
       )}
     </div>
