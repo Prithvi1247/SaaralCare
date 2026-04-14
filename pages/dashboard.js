@@ -82,6 +82,7 @@ const T = {
     yourZone: "Your Zone",
     riskScore: "Risk Score",
     premiumBasis: "Your premium is based on this zone's rainfall risk and seasonal patterns.",
+    howThisPayoutIsCalculated: "How this payout is calculated",
   },
   hi: {
     goodMorning: "सुप्रभात",
@@ -146,6 +147,7 @@ const T = {
     yourZone: "आपका क्षेत्र",
     riskScore: "जोखिम स्कोर",
     premiumBasis: "आपका प्रीमियम इस क्षेत्र के बारिश जोखिम और मौसमी पैटर्न पर आधारित है।",
+    howThisPayoutIsCalculated: "इस भुगतान की गणना कैसे की जाती है",
   },
   ta: {
     goodMorning: "காலை வணக்கம்",
@@ -210,6 +212,7 @@ const T = {
     yourZone: "உங்கள் மண்டலம்",
     riskScore: "அபாய மதிப்பெண்",
     premiumBasis: "உங்கள் பிரீமியம் இந்த மண்டலத்தின் மழை அபாயம் மற்றும் பருவகால முறைகளை அடிப்படையாகக் கொண்டது.",
+    howThisPayoutIsCalculated: "இந்த கொடுப்பனவு எவ்வாறு கணக்கிடப்படுகிறது",
   }
 };
 
