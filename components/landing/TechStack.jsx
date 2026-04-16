@@ -4,12 +4,12 @@ import { ArrowRight } from "lucide-react";
 import useScrollReveal from "@/hooks/useScrollReveal";
 
 const TECH = [
-  { icon: "🐘", name: "Supabase",      desc: "PostgreSQL + Auth"    },
-  { icon: "🌧️", name: "OpenWeather",   desc: "Rainfall data API"    },
-  { icon: "💳", name: "Razorpay",      desc: "UPI payments"         },
-  { icon: "⚛️", name: "React Native",  desc: "Mobile app"           },
-  { icon: "▲",  name: "Next.js",       desc: "Web platform"         },
-  { icon: "🦕", name: "Deno Edge",     desc: "Serverless functions" },
+  { icon: "🐘", name: "Supabase",      desc: "PostgreSQL + Auth"       },
+  { icon: "🌧️", name: "Open-Meteo",    desc: "Hourly rainfall data"    },
+  { icon: "💳", name: "Razorpay",      desc: "UPI auto-payouts"        },
+  { icon: "⚛️", name: "React Native",  desc: "Worker mobile app"       },
+  { icon: "▲",  name: "Next.js",       desc: "Web platform"            },
+  { icon: "🦕", name: "Deno Edge",     desc: "Parametric engine"       },
 ];
 
 export default function TechStack() {
@@ -18,7 +18,6 @@ export default function TechStack() {
   return (
     <section id="tech" ref={ref} className="py-24 px-4 bg-navy-900">
       <div className="max-w-7xl mx-auto">
-        {/* Stack */}
         <div className="text-center mb-14">
           <p className="font-mono text-xs tracking-widest uppercase text-rain-400 mb-2">
             // production_grade_infrastructure
@@ -51,49 +50,16 @@ export default function TechStack() {
             >
               <div className="text-3xl mb-2">{t.icon}</div>
               <p className="font-display font-bold text-white text-sm">{t.name}</p>
-              <p className="text-slate-500 text-xs mt-1">{t.desc}</p>
+              <p className="text-slate-400 text-xs mt-1">{t.desc}</p>
             </div>
           ))}
         </div>
 
         {/* Final CTA */}
-        <div
-          className="reveal relative rounded-2xl p-10 sm:p-14 text-center overflow-hidden"
-          style={{ border: "1px solid rgba(56,189,248,0.18)" }}
-        >
-          <div
-            className="absolute inset-0 pointer-events-none"
-            style={{ background: "radial-gradient(ellipse 80% 60% at 50% 50%, rgba(14,165,233,0.06) 0%, transparent 70%)" }}
-          />
-          <div className="relative z-10 max-w-2xl mx-auto">
-            <h2 className="font-display text-3xl sm:text-4xl font-extrabold text-white mb-4">
-              Ready to Transform<br />Gig Worker Protection?
-            </h2>
-            <p className="text-slate-400 text-base mb-8 leading-relaxed">
-              Zero friction. Full transparency. Actual impact.
-            </p>
+        
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                href="/dashboard"
-                className="btn-primary inline-flex items-center justify-center gap-2 px-8 py-4 text-base"
-              >
-                Launch Dashboard
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-              <Link
-                href="/login"
-                className="btn-secondary inline-flex items-center justify-center gap-2 px-8 py-4 text-base"
-              >
-                Start for ₹29/week
-              </Link>
-            </div>
-
-            <p className="mt-8 text-xs text-slate-600 tracking-wide">
-              ✓ 100% Automated · ✓ Zero Fraud · ✓ Audit-Ready · ✓ IRDAI Registered
-            </p>
-          </div>
-        </div>
+           
+         
       </div>
     </section>
   );

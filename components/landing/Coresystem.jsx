@@ -3,54 +3,55 @@ import useScrollReveal from "@/hooks/useScrollReveal";
 
 const CARDS = [
   {
-    icon: "🤖",
+    icon: "⏰",
     color: "#38bdf8",
-    title: "Zero-Touch System",
-    desc: "No claims. No adjusters. No phone calls. The engine runs 24/7 and fires payouts the moment a qualifying event is detected.",
-    tags: ["Fully Automated", "No Human Review"],
+    title: "Peak-Hour Intelligence",
+    desc: "Lunch rush (1–3 PM) and dinner peak (8–10 PM) are mapped per zone using restaurant data across 32 Chennai zones. Rain during these windows gets a 1.5× weight. No other insurer does this.",
+    tags: ["1.5× Peak Multiplier", "Zone-Specific"],
     tagColor: "blue",
-    metric: { label: "HUMAN INTERVENTION", value: "0%", color: "#34d399" },
+    code: "1.5 × intensity(mm/hr) × duration(hr)",
   },
   {
     icon: "🔒",
     color: "#fbbf24",
-    title: "Ungameable Design",
-    desc: "Station-based triggers only. Fixed zone mapping. No GPS dependency. Payouts are purely data-driven — workers cannot manipulate the system.",
-    tags: ["Station-Based", "Fixed Zones", "No GPS"],
+    title: "Fraud-Proof by Design",
+    desc: "No GPS. No manual claims. Fixed worker–zone–station mapping. Workers cannot switch zones, spoof location, or cherry-pick high-rainfall areas. Attack surface: zero.",
+    tags: ["No GPS", "Fixed Zones", "No Claims"],
     tagColor: "amber",
   },
   {
     icon: "📊",
     color: "#34d399",
     title: "Financial Discipline",
-    desc: "Auto-halt triggers if loss ratio exceeds 85%. Pricing buffer built in. Reinsurance layer for catastrophic events.",
-    tags: ["Auto Stop >85%", "Reinsurance"],
+    desc: "Dual Poisson risk model. Auto-halt if loss ratio exceeds 85%. 25% pricing buffer. Reinsurance layer for catastrophic NE monsoon events.",
+    tags: ["Auto Stop >85%", "Reinsurance", "Poisson Model"],
     tagColor: "emerald",
-    metric: { label: "CURRENT LOSS RATIO", value: "75.5%", color: "#34d399" },
+    metric: { label: "TARGET LOSS RATIO", value: "75.5%", color: "#34d399" },
   },
   {
-    icon: "⚙️",
+    icon: "🤖",
     color: "#a78bfa",
-    title: "Deterministic Engine",
-    desc: "Same input → same output → always. Every payout calculation is auditable, reproducible, and court-defensible.",
-    tags: ["Reproducible", "Audit-Ready"],
+    title: "ML Risk Classifier",
+    desc: "Trained on 161,593 rainfall records across 145 weather stations in 36 Tamil Nadu districts (2022–2025). Classifies each zone as Low / Moderate / High risk. Powers dynamic premium pricing.",
+    tags: ["95% Accuracy", "Isotonic Calibration"],
     tagColor: "purple",
-    code: "f(station, date) → payout",
+    metric: { label: "TRAINING RECORDS", value: "161,593", color: "#a78bfa" },
   },
   {
-    icon: "👤",
-    color: "#f472b6",
-    title: "Per-Worker Isolation",
-    desc: "Each worker's plan is independently managed. One worker's status never affects another's coverage or payout amount.",
-    tags: ["Isolated Plans", "No Pooling Risk"],
-    tagColor: "pink",
+    icon: "🤖",
+    color: "#38bdf8",
+    title: "Zero-Touch System",
+    desc: "No claims. No adjusters. No phone calls. The parametric engine runs 24/7 and fires UPI payouts the moment a qualifying rainfall event is confirmed via Open-Meteo.",
+    tags: ["Fully Automated", "No Human Review"],
+    tagColor: "blue",
+    metric: { label: "HUMAN INTERVENTION", value: "0%", color: "#34d399" },
   },
   {
-    icon: "🛡️",
+    icon: "🌐",
     color: "#22d3ee",
-    title: "Underwriting Layer",
-    desc: "Verified gig workers only. Work history required. Prevents adverse selection. Every enrollment is checked against platform data.",
-    tags: ["KYC Verified", "Work History"],
+    title: "Multipoint Zone Accuracy",
+    desc: "Open-Meteo API returns hourly rainfall for each zone's center + 1 km N/S/E/W. We average all 4 points to eliminate station-level noise and give every worker a fair, accurate trigger.",
+    tags: ["4-Point Spatial Avg", "Open-Meteo API"],
     tagColor: "cyan",
   },
 ];
@@ -83,17 +84,14 @@ function Card({ card, index }) {
         e.currentTarget.style.setProperty("--gy", `${y}%`);
       }}
     >
-      {/* Hover glow overlay */}
       <div
         className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
         style={{ background: "radial-gradient(circle at var(--gx,50%) var(--gy,50%), rgba(56,189,248,0.05) 0%, transparent 60%)" }}
       />
-
       <style>{`
         .group:hover { border-color:rgba(56,189,248,0.22)!important; transform:translateY(-4px); box-shadow:0 20px 60px rgba(0,0,0,0.35); }
       `}</style>
 
-      {/* Icon */}
       <div
         className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl mb-5 relative transition-transform duration-300 group-hover:scale-110"
         style={{ background: `${card.color}18` }}
@@ -101,9 +99,8 @@ function Card({ card, index }) {
       <div className="absolute" style={{ top: "28px", left: "28px", fontSize: "22px" }}>{card.icon}</div>
 
       <h3 className="font-display font-bold text-white text-lg mb-2">{card.title}</h3>
-      <p className="text-slate-500 text-sm leading-relaxed">{card.desc}</p>
+      <p className="text-slate-400 text-sm leading-relaxed">{card.desc}</p>
 
-      {/* Tags */}
       {card.tags && (
         <div className="flex flex-wrap gap-1.5 mt-4">
           {card.tags.map((t) => (
@@ -118,7 +115,6 @@ function Card({ card, index }) {
         </div>
       )}
 
-      {/* Metric */}
       {card.metric && (
         <div
           className="flex justify-between items-center mt-5 pt-4"
@@ -131,10 +127,9 @@ function Card({ card, index }) {
         </div>
       )}
 
-      {/* Code snippet */}
       {card.code && (
         <div
-          className="mt-4 px-3 py-2.5 rounded-lg font-mono text-xs text-slate-500 flex items-center gap-1"
+          className="mt-4 px-3 py-2.5 rounded-lg font-mono text-xs text-slate-400 flex items-center gap-1"
           style={{ background: "rgba(6,11,20,0.8)" }}
         >
           {card.code}
@@ -160,15 +155,15 @@ export default function CoreSystem() {
         </p>
         <h2 className="font-display text-4xl sm:text-5xl font-extrabold text-white mb-4">
           System Built to<br />
-          <span className="text-rain-400">Never Break</span>
+          <span className="text-rain-400">Never Miss a Payout</span>
         </h2>
         <p className="text-slate-500 text-sm leading-relaxed max-w-lg mb-14">
-          Every design decision is deliberate. Every number is defensible.
+          Every design decision is deliberate. Every number is defensible. Every rupee is automated.
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 relative">
           {CARDS.map((card, i) => (
-            <Card key={card.title} card={card} index={i} />
+            <Card key={card.title + i} card={card} index={i} />
           ))}
         </div>
       </div>

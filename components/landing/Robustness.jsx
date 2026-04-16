@@ -5,23 +5,23 @@ import useScrollReveal from "@/hooks/useScrollReveal";
 const FAILURES = [
   {
     icon: "☁️",
-    title: "Weather API Down",
-    mitigation: "Fallback to backup API + 6-hour cached data window. Zero data gap.",
+    title: "Open-Meteo API Unavailable",
+    mitigation: "6-hour rolling cache + secondary grid fallback. Trigger evaluation pauses, never drops. Data gap = zero.",
   },
   {
     icon: "💳",
-    title: "Payment Gateway Fails",
-    mitigation: "Retry queue + manual review buffer within 2hr SLA. Payout never lost.",
+    title: "UPI / Razorpay Gateway Fails",
+    mitigation: "Retry queue with exponential backoff. Manual review buffer within 2-hour SLA. No payout is ever lost — it queues.",
   },
   {
     icon: "📍",
-    title: "Station Data Missing",
-    mitigation: "Nearest-neighbor lookup from 3 adjacent stations. Automatic alert fired.",
+    title: "Zone Grid Data Missing",
+    mitigation: "Nearest-neighbor spatial interpolation from 3 adjacent grid points fires automatically. Alert raised to ops.",
   },
   {
     icon: "🗄️",
-    title: "Database Connection Lost",
-    mitigation: "Connection pool + read replicas across 2 regions. Sub-second failover.",
+    title: "Supabase / DB Connection Lost",
+    mitigation: "Connection pooling + read replicas across 2 regions. Sub-second failover. Worker state is never corrupted.",
   },
 ];
 
@@ -38,8 +38,8 @@ export default function Robustness() {
           If Systems Fail,<br />
           <span className="text-emerald-400">Payouts Don't</span>
         </h2>
-        <p className="text-slate-500 text-sm leading-relaxed max-w-lg mb-12">
-          Multi-layer redundancy ensures zero payout loss, even in extreme conditions.
+        <p className="text-slate-100 text-sm leading-relaxed max-w-lg mb-12">
+          Multi-layer redundancy ensures zero payout loss — even when Chennai's NE monsoon brings everything down at once.
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
@@ -64,7 +64,7 @@ export default function Robustness() {
               <span className="text-3xl flex-shrink-0 mt-0.5">{f.icon}</span>
               <div>
                 <h4 className="font-display font-bold text-white text-base mb-1.5">{f.title}</h4>
-                <p className="text-sm text-slate-500 leading-relaxed">
+                <p className="text-sm text-slate-200 leading-relaxed">
                   <span className="text-emerald-400 font-semibold">→ </span>
                   {f.mitigation}
                 </p>
@@ -73,7 +73,6 @@ export default function Robustness() {
           ))}
         </div>
 
-        {/* Trust note */}
         <div
           className="reveal flex gap-4 items-start rounded-2xl p-6"
           style={{ background: "rgba(52,211,153,0.04)", border: "1px solid rgba(52,211,153,0.15)" }}
@@ -81,10 +80,10 @@ export default function Robustness() {
           <Shield className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
           <div>
             <h4 className="font-display font-bold text-white mb-2">Built for Trust</h4>
-            <p className="text-sm text-slate-400 leading-relaxed">
-              Workers trust the system because it doesn't fail them. In parametric insurance, the
-              system's reliability IS the brand. Every redundancy is designed with one goal:{" "}
-              <strong className="text-white">never lose a payout.</strong>
+            <p className="text-sm text-slate-200 leading-relaxed">
+              A delivery partner sitting in the rain at 2 PM doesn't care about uptime SLAs. They care about
+              one thing: does the money come? Our entire redundancy architecture exists to answer that with
+              a permanent <strong className="text-white">yes.</strong>
             </p>
           </div>
         </div>

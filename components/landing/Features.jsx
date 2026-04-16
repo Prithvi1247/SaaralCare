@@ -1,54 +1,54 @@
 // components/landing/Features.jsx
-import { CloudRain, Zap, MapPin, Shield, CreditCard, Clock } from "lucide-react";
+import { CloudRain, Zap, MapPin, Shield, CreditCard, Globe } from "lucide-react";
 
 const FEATURES = [
   {
     icon: CloudRain,
     color: "text-rain-400",
     bg: "bg-rain-400/10",
-    title: "Rainfall-Triggered Payouts",
+    title: "Peak-Hour Weighted Triggers",
     description:
-      "Linked to certified IMD weather stations. When rainfall exceeds your threshold, a payout is automatically initiated.",
+      "Rainfall during lunch (1–3 PM) and dinner (8–10 PM) rush hours hits 1.5× harder on income. Our engine knows that — and pays accordingly. Industry first.",
   },
   {
     icon: Zap,
     color: "text-amber-400",
     bg: "bg-amber-400/10",
-    title: "Instant Transfers",
+    title: "UPI Credit in Under 4 Hours",
     description:
-      "Funds reach your UPI ID within 4 hours of a qualifying rain event. No claim form, no adjuster visit.",
+      "The moment a qualifying event is confirmed by Open-Meteo, your UPI account is credited automatically. No claim form. No adjuster. No waiting room.",
   },
   {
     icon: MapPin,
     color: "text-emerald-400",
     bg: "bg-emerald-400/10",
-    title: "Zone-Based Coverage",
+    title: "Hyper-Local Zone Accuracy",
     description:
-      "Your delivery zone is mapped to the nearest rainfall station. Coverage is hyper-local and accurate.",
+      "Each Chennai zone is measured using a 4-point spatial average — 1 km North, South, East and West of your zone center. Not one station. Four. Averaged.",
   },
   {
     icon: Shield,
     color: "text-purple-400",
     bg: "bg-purple-400/10",
-    title: "IRDAI Registered",
+    title: "Fraud-Proof by Architecture",
     description:
-      "Backed by a licensed insurer. Your policy is fully compliant and your money is protected by law.",
+      "No GPS. No manual claims. No location switching. Fixed worker–zone–station mapping eliminates every fraud entry point before it can be exploited.",
   },
   {
     icon: CreditCard,
     color: "text-pink-400",
     bg: "bg-pink-400/10",
-    title: "₹29/week Premium",
+    title: "₹29/week. Cancel Anytime.",
     description:
-      "Affordable weekly premiums deducted automatically. Cancel anytime with no penalties.",
+      "Less than a cup of chai a day. Weekly auto-debit. No lock-in. Cancel anytime. Coverage activates 7 days after payment to prevent forecast abuse.",
   },
   {
-    icon: Clock,
+    icon: Globe,
     color: "text-cyan-400",
     bg: "bg-cyan-400/10",
-    title: "2-Minute Onboarding",
+    title: "Tamil · Hindi · English",
     description:
-      "Just your phone number and delivery zone. No medical exams, no lengthy forms.",
+      "Full multilingual support across the entire platform. Every delivery partner in Chennai can onboard, check status, and receive notifications in their language.",
   },
 ];
 
@@ -56,19 +56,17 @@ export default function Features() {
   return (
     <section id="coverage" className="py-24 px-4 bg-navy-950">
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
         <div className="text-center mb-16">
           <p className="text-rain-400 text-sm font-medium tracking-widest uppercase mb-3">
-            Why SaaralCare
+            Why SaaralCare AI
           </p>
           <h2 className="font-display text-4xl sm:text-5xl font-bold text-white">
-            Protection built for
+            Built for the realities of
             <br />
-            <span className="text-rain-400 italic">gig workers</span>
+            <span className="text-rain-400 italic">Chennai's rain seasons</span>
           </h2>
         </div>
 
-        {/* Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {FEATURES.map((f) => (
             <div

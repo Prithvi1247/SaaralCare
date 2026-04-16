@@ -14,21 +14,6 @@ export default function Footer() {
     >
       <div className="max-w-7xl mx-auto">
 
-        {/* ── Tagline ── */}
-        <div
-          className="text-center pb-12 mb-12"
-          style={{ borderBottom: "1px solid rgba(22,40,64,0.8)" }}
-        >
-          <p
-            className="font-display font-extrabold text-white leading-tight"
-            style={{ fontSize: "clamp(1.6rem,4vw,2.6rem)" }}
-          >
-            We don't process{" "}
-            <span className="text-rain-400">claims</span>.<br />
-            We process{" "}
-            <span className="text-rain-400">events</span>.
-          </p>
-        </div>
 
         {/* ── Links grid ── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">

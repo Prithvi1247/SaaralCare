@@ -3,28 +3,28 @@ import useScrollReveal from "@/hooks/useScrollReveal";
 
 const TESTIMONIALS = [
   {
-    name: "Arjun S.",
-    zone: "Tambaram",
-    platform: "Zomato",
+    name: "Karthik R.",
+    zone: "Velachery",
+    platform: "Swiggy",
     emoji: "🛵",
     quote:
-      "During the July floods I got ₹800 in my account by 4pm. I didn't even have to call anyone. It just happened.",
+      "It was 1:30 PM, peak time, heavy rain. By 5 PM ₹800 was in my UPI. I didn't even know I had to do something — I didn't. It just came.",
   },
   {
     name: "Priya M.",
-    zone: "Mylapore",
-    platform: "Swiggy",
+    zone: "Tambaram",
+    platform: "Zomato",
     emoji: "🚲",
     quote:
-      "₹29 a week is less than a cup of chai. But when it rains heavy I know I'm not losing a full day's income.",
+      "₹49 a week is nothing. But when the NE monsoon hits and I can't ride, that ₹800 is everything. Signup was in Tamil — took 2 minutes.",
   },
   {
-    name: "Ravi K.",
+    name: "Senthil K.",
     zone: "Anna Nagar",
     platform: "Swiggy",
     emoji: "🏍️",
     quote:
-      "Signing up took 2 minutes on my phone. Third week in, I got my first payout. These people are serious.",
+      "Other insurance asks me to submit photos, call them, wait 3 weeks. SaaralCare just credited my account. I still don't fully believe it happened.",
   },
 ];
 
@@ -39,8 +39,8 @@ export default function Testimonials() {
             // real_stories
           </p>
           <h2 className="font-display text-4xl sm:text-5xl font-extrabold text-white">
-            Delivery Workers Love<br />
-            <span className="italic text-slate-300">SaaralCare</span>
+            Chennai Delivery Partners<br />
+            <span className="italic text-slate-300">Trust SaaralCare</span>
           </h2>
         </div>
 
@@ -63,7 +63,7 @@ export default function Testimonials() {
                 e.currentTarget.style.transform = "translateY(0)";
               }}
             >
-              <p className="text-slate-300 text-sm leading-relaxed italic flex-1 mb-6">
+              <p className="text-slate-200 text-sm leading-relaxed italic flex-1 mb-6">
                 "{t.quote}"
               </p>
               <div
@@ -78,8 +78,8 @@ export default function Testimonials() {
                 </div>
                 <div>
                   <p className="font-semibold text-white text-sm">{t.name}</p>
-                  <p className="text-slate-500 text-xs mt-0.5">
-                    {t.platform} · {t.zone}
+                  <p className="text-slate-400 text-xs mt-0.5">
+                    {t.platform} · {t.zone}, Chennai
                   </p>
                 </div>
               </div>

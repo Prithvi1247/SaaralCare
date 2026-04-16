@@ -4,37 +4,37 @@ import useScrollReveal from "@/hooks/useScrollReveal";
 
 const EXAMPLES = [
   {
-    id: "payout_event_001",
-    type: "FULL",
-    station: "Velachery, Chennai",
-    rainIndex: 54,
-    threshold: 50,
-    delta: "+4",
+    id: "tx_full_089",
+    type: "PEAK_EVENT",
+    zone: "Velachery ",
+    time: "1:30 PM (Lunch Peak)",
+    math: "35mm × 1hr × 1.5 = 52.5",
+    threshold: "> 45 (Full)",
     amount: "₹800",
     status: "full",
-    label: "✓ FULL PAYOUT TRIGGERED",
+    label: "✓ FULL PAYOUT (PEAK)",
   },
   {
-    id: "payout_event_002",
-    type: "PARTIAL",
-    station: "Andheri, Mumbai",
-    rainIndex: 38,
-    threshold: 50,
-    range: "30–49 ◐",
+    id: "tx_part_112",
+    type: "NON_PEAK_EVENT",
+    zone: "Mylapore ",
+    time: "4:15 PM (Non-Peak)",
+    math: "40mm × 1hr × 1.0 = 40.0",
+    threshold: "> 35 (Partial)",
     amount: "₹400",
     status: "partial",
-    label: "◐ PARTIAL PAYOUT (30–49)",
+    label: "◐ PARTIAL PAYOUT",
   },
   {
-    id: "payout_event_003",
-    type: "NONE",
-    station: "Bandra, Mumbai",
-    rainIndex: 22,
-    threshold: 50,
-    delta: "-28",
+    id: "tx_drop_404",
+    type: "PEAK_MARGINAL",
+    zone: "Tambaram ",
+    time: "8:45 PM (Dinner Peak)",
+    math: "8mm × 1hr × 1.5 = 12.0",
+    threshold: "< 15 (No Payout)",
     amount: "₹0",
     status: "none",
-    label: "✗ NOT TRIGGERED (<30)",
+    label: "✗ NOT TRIGGERED",
   },
 ];
 
@@ -49,7 +49,7 @@ function LogCard({ ex }) {
 
   return (
     <div
-      className="reveal relative rounded-2xl p-6 font-mono text-sm transition-all duration-300 overflow-hidden"
+      className="reveal relative rounded-2xl p-6 font-mono text-sm transition-all duration-300 overflow-hidden log-card-hover"
       style={{
         background: "rgba(6,11,20,0.9)",
         border: "1px solid rgba(22,40,64,0.9)",
@@ -76,20 +76,18 @@ function LogCard({ ex }) {
 
       <div className="space-y-2.5 mb-5">
         {[
-          { k: "station:",     v: ex.station,    vc: "text-white" },
-          { k: "rain_index:",  v: ex.rainIndex,  vc: "text-rain-400 font-bold" },
-          { k: "threshold:",   v: ex.threshold,  vc: "text-amber-400" },
-          ex.delta
-            ? { k: "delta:", v: `${ex.delta} ${ex.status === "full" ? "✓" : "✗"}`, vc: ex.status === "full" ? "text-emerald-400 font-bold" : "text-slate-500" }
-            : { k: "range:", v: ex.range, vc: "text-amber-400" },
-          { k: "payout:",      v: ex.amount,     vc: ex.status === "full" ? "text-emerald-400 font-bold" : ex.status === "partial" ? "text-amber-400 font-bold" : "text-slate-500" },
+          { k: "zone:",       v: ex.zone,      vc: "text-white" },
+          { k: "time:",       v: ex.time,      vc: ex.time.includes("Peak") && !ex.time.includes("Non") ? "text-amber-200 font-bold" : "text-slate-200" },
+          { k: "formula:",    v: ex.math,      vc: "text-rain-100 font-bold" },
+          { k: "threshold:",  v: ex.threshold, vc: "text-slate-200" },
+          { k: "payout:",     v: ex.amount,    vc: ex.status === "full" ? "text-emerald-400 font-bold" : ex.status === "partial" ? "text-amber-400 font-bold" : "text-slate-500" },
         ].map((row) => (
           <div
             key={row.k}
             className="flex justify-between items-center pb-2"
             style={{ borderBottom: "1px solid rgba(22,40,64,0.6)" }}
           >
-            <span className="text-slate-600 text-xs">{row.k}</span>
+            <span className="text-slate-100 text-xs">{row.k}</span>
             <span className={`text-xs ${row.vc}`}>{row.v}</span>
           </div>
         ))}
@@ -124,8 +122,8 @@ export default function Explainability() {
             Why You Got <span className="text-rain-400">Paid</span>
           </h2>
           <p className="text-slate-500 max-w-xl mx-auto text-sm leading-relaxed">
-            Every worker sees the exact calculation behind their payout.
-            No black box. Full transparency.
+            Every delivery worker sees the exact Open-Meteo calculation behind their payout.
+            No black box. No claims adjusters. Just math.
           </p>
         </div>
 
@@ -142,12 +140,12 @@ export default function Explainability() {
         >
           <CheckCircle2 className="w-5 h-5 text-rain-400 flex-shrink-0 mt-0.5" />
           <div>
-            <h3 className="font-display font-bold text-white mb-3">The Logic — Always the Same</h3>
-            <p className="font-mono text-sm text-slate-400 leading-8">
-              <strong className="text-white">Rain Index</strong> = avg_hourly_rainfall × rainy_days<br />
-              <span className="text-emerald-400">Rain Index ≥ 50</span> → Full Payout (₹800)<br />
-              <span className="text-amber-400">30 ≤ Rain Index &lt; 50</span> → Partial Payout (₹400)<br />
-              <span className="text-slate-600">Rain Index &lt; 30</span> → No Payout (₹0)
+            <h3 className="font-display font-bold text-white mb-3">The Logic — Peak Hour Disruption Math</h3>
+            <p className="font-mono text-sm text-slate-100 leading-8">
+              <strong className="text-white">Base Trigger</strong> = Intensity (mm/hr) × Duration (hr)<br />
+              <strong className="text-amber-400">Peak Multiplier</strong> = Base × 1.5x <span className="text-slate-300">(Active 1-3 PM Lunch & 8-10 PM Dinner)</span><br />
+              <span className="text-emerald-400">Full Payout (₹800)</span> = Peak Value &gt; 45mm OR Non-Peak &gt; 75mm<br />
+              <span className="text-rain-400">Partial Payout (₹400)</span> = Peak Value &gt; 15mm OR Non-Peak &gt; 35mm
             </p>
           </div>
         </div>
