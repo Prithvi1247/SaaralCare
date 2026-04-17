@@ -16,6 +16,7 @@ import PremiumCard          from "@/components/dashboard/PremiumCard";
 import ClaimHistory         from "@/components/dashboard/ClaimHistory";
 import ZoneRiskCard         from "@/components/dashboard/ZoneRiskCard";
 import { supabase }         from "@/lib/supabaseClient";
+import toast from "react-hot-toast";
 
 // ── Translation dictionary ───────────────────────────────────────────────────
 const T = {
@@ -604,7 +605,7 @@ export default function DashboardPage() {
 
   async function handleBuyPlan() {
     try {
-      if (!policy) return alert("Policy not loaded");
+      if (!policy) return toast.error("Policy not loaded");
       const res = await fetch("/api/create-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -633,7 +634,7 @@ export default function DashboardPage() {
           const data = await verifyRes.json();
 
           if (data.success) {
-            alert("Payment Successful!");
+            toast.success("Payment Successful!");
             const phone = sessionStorage.getItem("gs_worker_phone");
             if (phone) {
               const { data: updatedWorker } = await supabase
@@ -655,7 +656,7 @@ export default function DashboardPage() {
       const rzp = new window.Razorpay(options);
       rzp.open();
     } catch (err) {
-      alert("Payment failed");
+      toast.error("Payment failed");
     }
   }
 
