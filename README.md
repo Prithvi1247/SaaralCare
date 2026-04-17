@@ -28,6 +28,8 @@
 
 </div>
 
+ADMIN PORTAL : https://saaralcareadmin.vercel.app/
+PPT : https://drive.google.com/file/d/1_PYbTP6ct4-qyvEmG1PqOusNXhW_cG1X/view?usp=sharing
 ---
 
 ## 📋 Table of Contents

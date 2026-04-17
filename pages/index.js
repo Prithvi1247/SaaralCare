@@ -30,7 +30,8 @@ export default function HomePage() {
         <title>SaaralCare AI — Zero-Touch Rainfall Insurance for Gig Workers</title>
         <meta name="description" content="Parametric income protection for delivery workers. Automated payouts triggered by rainfall. Zero claims, no verification, no waiting." />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
+        {/* Updated to use image.ico from the public folder */}
+        <link rel="icon" href="/image.ico" />
       </Head>
 
       <div className="min-h-screen bg-navy-950 overflow-x-hidden">
