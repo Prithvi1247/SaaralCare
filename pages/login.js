@@ -59,6 +59,7 @@ export default function LoginPage() {
             <p className="text-slate-400 text-sm">
               Sign in with your mobile number to access your coverage
             </p>
+              
           </div>
 
           {/* Login card */}
@@ -67,12 +68,18 @@ export default function LoginPage() {
           </div>
 
           {/* Sign up prompt */}
+          
           <p className="text-center text-slate-400 text-sm mt-6">
             New to SaaralCare?{" "}
             <Link href="/login" className="text-rain-400 hover:text-rain-300 transition-colors font-medium">
               Get protected in 2 minutes
             </Link>
           </p>
+          <div>
+
+           <p> Demo : 1231231231  Sahana (inactive)</p>
+           <p> Demo : 4444444444  Kanaga (active) </p>
+          </div>
 
           {/* Trust signals */}
           <div className="flex items-center justify-center gap-6 mt-8">

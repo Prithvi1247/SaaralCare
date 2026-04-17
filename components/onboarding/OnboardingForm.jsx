@@ -185,6 +185,7 @@ export default function OnboardingForm() {
         <h3 className="font-display text-2xl font-bold text-white mb-2">
           Welcome to SaaralCare!
         </h3>
+     
         <p className="text-slate-400">Setting up your dashboard…</p>
       </div>
     );

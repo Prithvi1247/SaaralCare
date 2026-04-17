@@ -268,7 +268,7 @@ The ML model's job is risk-aware premium pricing. It runs offline, classifies st
 |----------|-------|
 | Type | Rainfall Risk Classifier |
 | Output | Low / Moderate / High risk |
-| Accuracy | **0.95** |
+| Accuracy | **0.98** |
 | Validation | Stratified cross-validation |
 | Calibration | Isotonic Regression |
 
@@ -599,8 +599,8 @@ Use these phone numbers for instant demo onboarding:
 
 | Phone Number | Worker Name |
 |-------------|-------------|
-| `5555555555` | Pradeep |
-| `9999999999` | Ravi |
+| `1231231231` | Sahana (inactive) |
+| `4444444444` | Kanaga (active) |
 
 ---
 
