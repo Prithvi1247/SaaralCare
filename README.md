@@ -23,7 +23,7 @@
 
 <br/>
 
-> 🏆 **Built for Guidewire DEVTrails 2026 — Phase 2**  
+> 🏆 **Built for Guidewire DEVTrails 2026**  
 > _AI-enabled parametric insurance for India's gig economy_
 
 </div>
